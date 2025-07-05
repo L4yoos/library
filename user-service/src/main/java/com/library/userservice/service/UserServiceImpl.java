@@ -1,24 +1,20 @@
 package com.library.userservice.service;
 
+import com.library.userservice.exception.UserNotFoundException;
 import com.library.userservice.model.User;
 import com.library.userservice.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
-    @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public List<User> getAllUsers() {
@@ -33,13 +29,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User user) {
         if (user.getEmail() != null && userRepository.findByEmailValue(user.getEmail().getValue()).isPresent()) {
-            throw new IllegalArgumentException("Użytkownik o podanym adresie email już istnieje.");
+            throw new IllegalArgumentException("The user with the specified email address already exists.");
         }
 
         if (user.getPhoneNumber() != null && userRepository.findByPhoneNumberValue(user.getPhoneNumber().getValue()).isPresent()) {
-            throw new IllegalArgumentException("Użytkownik o podanym numerze telefonu już istnieje.");
+            throw new IllegalArgumentException("The user with the specified telephone number already exists.");
         }
-        user.setRegistrationDate(LocalDate.now());
         user.setActive(true);
         return userRepository.save(user);
     }
@@ -52,7 +47,7 @@ public class UserServiceImpl implements UserService {
                     !userDetails.getEmail().getValue().equals(existingUser.getEmail().getValue())) {
                 Optional<User> userWithNewEmail = userRepository.findByEmailValue(userDetails.getEmail().getValue());
                 if (userWithNewEmail.isPresent() && !userWithNewEmail.get().getId().equals(id)) {
-                    throw new IllegalArgumentException("Nowy adres email jest już zajęty.");
+                    throw new IllegalArgumentException("The new email address is already taken.");
                 }
             }
 
@@ -60,7 +55,7 @@ public class UserServiceImpl implements UserService {
                     !userDetails.getPhoneNumber().getValue().equals(existingUser.getPhoneNumber().getValue())) {
                 Optional<User> userWithNewPhone = userRepository.findByPhoneNumberValue(userDetails.getPhoneNumber().getValue());
                 if (userWithNewPhone.isPresent() && !userWithNewPhone.get().getId().equals(id)) {
-                    throw new IllegalArgumentException("Nowy numer telefonu jest już zajęty.");
+                    throw new IllegalArgumentException("The new phone number is already taken.");
                 }
             }
 
@@ -69,7 +64,6 @@ public class UserServiceImpl implements UserService {
             existingUser.setEmail(userDetails.getEmail());
             existingUser.setPhoneNumber(userDetails.getPhoneNumber());
             existingUser.setAddress(userDetails.getAddress());
-            existingUser.setActive(userDetails.isActive());
 
             return userRepository.save(existingUser);
         });
@@ -78,24 +72,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
-            throw new IllegalArgumentException("Użytkownik o ID " + id + " nie istnieje.");
+            throw new UserNotFoundException("User with ID " + id + " does not exist.");
         }
         userRepository.deleteById(id);
     }
 
     @Override
-    public Optional<User> deactivateUser(UUID id) {
-        return userRepository.findById(id).map(user -> {
-            user.setActive(false);
-            return userRepository.save(user);
-        });
+    public void deactivateUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with ID " + id + " does not exist."));
+        user.setActive(false);
+        userRepository.save(user);
     }
 
     @Override
-    public Optional<User> activateUser(UUID id) {
-        return userRepository.findById(id).map(user -> {
-            user.setActive(true);
-            return userRepository.save(user);
-        });
+    public void activateUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with ID " + id + " does not exist."));
+        user.setActive(true);
+        userRepository.save(user);
     }
 }

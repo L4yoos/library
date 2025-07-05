@@ -1,6 +1,6 @@
 package com.library.bookservice.exception;
 
-import com.library.bookservice.dto.ErrorResponseDTO;
+import com.library.bookservice.dto.ResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +16,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ErrorResponseDTO> handleValidationExceptions(
+    public ResponseEntity<ResponseDTO> handleValidationExceptions(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
 
-        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+        ResponseDTO errorResponse = new ResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation Error",
-                "Walidacja danych wejściowych nie powiodła się.",
+                "Validation of input data failed. Check the validity of the data.",
                 request.getRequestURI()
         );
 

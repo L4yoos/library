@@ -1,12 +1,10 @@
 package com.library.userservice.service;
 
+import com.library.userservice.exception.UserNotFoundException;
 import com.library.userservice.model.User;
-import com.library.userservice.model.valueobjects.EmailAddress;
-import com.library.userservice.model.valueobjects.FirstName;
-import com.library.userservice.model.valueobjects.LastName;
-import com.library.userservice.model.valueobjects.PhoneNumber;
 import com.library.userservice.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,15 +13,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest {
+class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
@@ -31,210 +32,330 @@ public class UserServiceImplTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    private User sampleUser;
-    private UUID sampleUserId;
+    private UUID userId;
+    private User user;
 
     @BeforeEach
     void setUp() {
-        sampleUserId = UUID.randomUUID();
-        sampleUser = new User(sampleUserId, new FirstName("Jan"), new LastName("Kowalski"),
-                new EmailAddress("jan.kowalski@example.com"), new PhoneNumber("123456789"),
-                "Warszawska 1, Warszawa", LocalDate.of(2023, 1, 1), true);
+        userId = UUID.randomUUID();
+        user = new User(
+                "John",
+                "Doe",
+                "john.doe@example.com",
+                "123456789",
+                "123 Main St"
+        );
+        user.setId(userId);
+        user.setRegistrationDate(LocalDate.now());
+        user.setActive(true);
     }
 
     @Test
+    @DisplayName("Should return all users successfully")
     void getAllUsers_shouldReturnListOfUsers() {
-        when(userRepository.findAll()).thenReturn(Arrays.asList(sampleUser));
-        List<User> users = userService.getAllUsers();
-        assertNotNull(users);
-        assertEquals(1, users.size());
-        assertEquals(sampleUser.getFirstName(), users.get(0).getFirstName());
+        List<User> users = Arrays.asList(user, new User("Jane", "Smith", "jane.smith@example.com", "987654321", "456 Oak Ave"));
+        when(userRepository.findAll()).thenReturn(users);
+
+        List<User> result = userService.getAllUsers();
+
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getFirstName().getValue()).isEqualTo("John");
         verify(userRepository, times(1)).findAll();
     }
 
     @Test
+    @DisplayName("Should return empty list when no users exist")
+    void getAllUsers_shouldReturnEmptyList() {
+        when(userRepository.findAll()).thenReturn(Collections.emptyList());
+
+        List<User> result = userService.getAllUsers();
+
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+        verify(userRepository, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("Should return user by ID when found")
     void getUserById_shouldReturnUserWhenFound() {
-        when(userRepository.findById(sampleUserId)).thenReturn(Optional.of(sampleUser));
-        Optional<User> user = userService.getUserById(sampleUserId);
-        assertTrue(user.isPresent());
-        assertEquals(sampleUser, user.get());
-        verify(userRepository, times(1)).findById(sampleUserId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        Optional<User> result = userService.getUserById(userId);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(userId);
+        assertThat(result.get().getEmail().getValue()).isEqualTo("john.doe@example.com");
+        verify(userRepository, times(1)).findById(userId);
     }
 
     @Test
-    void getUserById_shouldReturnEmptyWhenNotFound() {
-        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
-        Optional<User> user = userService.getUserById(UUID.randomUUID());
-        assertFalse(user.isPresent());
-        verify(userRepository, times(1)).findById(any(UUID.class));
+    @DisplayName("Should return empty Optional when user by ID is not found")
+    void getUserById_shouldReturnEmptyOptionalWhenNotFound() {
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        Optional<User> result = userService.getUserById(userId);
+
+        assertThat(result).isEmpty();
+        verify(userRepository, times(1)).findById(userId);
     }
 
     @Test
-    void createUser_shouldCreateAndReturnUser() {
-        User userToCreate = new User(
-                "Test",
-                "User",
-                "test.user@example.com",
-                "987654321",
-                "Test Address"
-        );
-        when(userRepository.findByEmailValue(userToCreate.getEmail().getValue())).thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class))).thenReturn(userToCreate); // Mock saving the user
+    @DisplayName("Should create a new user successfully with unique email and phone")
+    void createUser_shouldCreateUserSuccessfully() {
+        User newUser = new User("New", "User", "new.user@example.com", "111222333", "789 Pine Rd");
+        newUser.setId(UUID.randomUUID());
 
-        User createdUser = userService.createUser(userToCreate);
+        when(userRepository.findByEmailValue(newUser.getEmail().getValue())).thenReturn(Optional.empty());
+        when(userRepository.findByPhoneNumberValue(newUser.getPhoneNumber().getValue())).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(newUser);
 
-        assertNotNull(createdUser);
-        assertNotNull(createdUser.getId());
-        assertEquals(userToCreate.getFirstName(), createdUser.getFirstName());
-        assertEquals(userToCreate.getEmail(), createdUser.getEmail());
-        assertTrue(createdUser.isActive());
-        assertNotNull(createdUser.getRegistrationDate());
+        User createdUser = userService.createUser(newUser);
 
-        verify(userRepository, times(1)).findByEmailValue(userToCreate.getEmail().getValue());
+        assertThat(createdUser).isNotNull();
+        assertThat(createdUser.getEmail().getValue()).isEqualTo("new.user@example.com");
+        assertThat(createdUser.getPhoneNumber().getValue()).isEqualTo("111222333");
+        assertThat(createdUser.isActive()).isTrue();
+        verify(userRepository, times(1)).findByEmailValue(newUser.getEmail().getValue());
+        verify(userRepository, times(1)).findByPhoneNumberValue(newUser.getPhoneNumber().getValue());
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    void createUser_shouldCreateUserWithValidFirstName() {
-        assertDoesNotThrow(() ->
-                new User("Jan", "Kowalski", "jan.kowalski@example.com", "123456789", "Test Address"));
+    @DisplayName("Should throw IllegalArgumentException when creating user with existing email")
+    void createUser_shouldThrowExceptionWhenEmailExists() {
+        User existingUser = new User("Existing", "User", "john.doe@example.com", "999888777", "Existing Address");
+        when(userRepository.findByEmailValue("john.doe@example.com")).thenReturn(Optional.of(existingUser));
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(user);
+        });
+
+        assertThat(thrown.getMessage()).isEqualTo("The user with the specified email address already exists.");
+        verify(userRepository, times(1)).findByEmailValue("john.doe@example.com");
+        verify(userRepository, never()).findByPhoneNumberValue(anyString());
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void createUser_shouldCreateUserWhenLastNameIsValidLength() {
-        String validLastName = "Kowalski";
-        assertDoesNotThrow(() ->
-                new User("Jan", validLastName, "jan.kowalski@example.com", "123456789", "Test Address"));
+    @DisplayName("Should throw IllegalArgumentException when creating user with existing phone number")
+    void createUser_shouldThrowExceptionWhenPhoneNumberExists() {
+        User existingUser = new User("Existing", "User", "unique.email@example.com", "123456789", "Existing Address");
+        when(userRepository.findByEmailValue("john.doe@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByPhoneNumberValue("123456789")).thenReturn(Optional.of(existingUser));
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            userService.createUser(user);
+        });
+
+        assertThat(thrown.getMessage()).isEqualTo("The user with the specified telephone number already exists.");
+        verify(userRepository, times(1)).findByEmailValue("john.doe@example.com");
+        verify(userRepository, times(1)).findByPhoneNumberValue("123456789");
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void createUser_shouldCreateUserWithValidEmailFormat() {
-        assertDoesNotThrow(() ->
-                new User("Jan", "Kowalski", "jan.kowalski@example.com", "123456789", "Test Address"));
+    @DisplayName("Should update user successfully when user exists and new details are valid")
+    void updateUser_shouldUpdateUserSuccessfully() {
+        User updatedDetails = new User("Updated", "Name", "updated.email@example.com", "999888777", "Updated Address");
+        updatedDetails.setId(userId);
+
+        User existingUser = new User("John", "Doe", "john.doe@example.com", "123456789", "Original Address");
+        existingUser.setId(userId);
+        existingUser.setRegistrationDate(LocalDate.now());
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmailValue("updated.email@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByPhoneNumberValue("999888777")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+
+        Optional<User> result = userService.updateUser(userId, updatedDetails);
+
+        assertThat(result).isPresent();
+        User savedUser = result.get();
+        assertThat(savedUser.getFirstName().getValue()).isEqualTo("Updated");
+        assertThat(savedUser.getLastName().getValue()).isEqualTo("Name");
+        assertThat(savedUser.getEmail().getValue()).isEqualTo("updated.email@example.com");
+        assertThat(savedUser.getPhoneNumber().getValue()).isEqualTo("999888777");
+        assertThat(savedUser.getAddress()).isEqualTo("Updated Address");
+        assertThat(savedUser.getRegistrationDate()).isEqualTo(existingUser.getRegistrationDate());
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByEmailValue("updated.email@example.com");
+        verify(userRepository, times(1)).findByPhoneNumberValue("999888777");
+        verify(userRepository, times(1)).save(existingUser);
+    }
+
+    @Test
+    @DisplayName("Should update user successfully when email/phone are unchanged")
+    void updateUser_shouldUpdateUserSuccessfullyWhenEmailPhoneUnchanged() {
+        User updatedDetails = new User("Updated", "Name", "john.doe@example.com", "123456789", "Updated Address");
+        updatedDetails.setId(userId);
+
+        User existingUser = new User("John", "Doe", "john.doe@example.com", "123456789", "Original Address");
+        existingUser.setId(userId);
+        existingUser.setRegistrationDate(LocalDate.now());
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+
+        Optional<User> result = userService.updateUser(userId, updatedDetails);
+
+        assertThat(result).isPresent();
+        User savedUser = result.get();
+        assertThat(savedUser.getFirstName().getValue()).isEqualTo("Updated");
+        assertThat(savedUser.getEmail().getValue()).isEqualTo("john.doe@example.com");
+        assertThat(savedUser.getPhoneNumber().getValue()).isEqualTo("123456789");
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).findByEmailValue(anyString());
+        verify(userRepository, never()).findByPhoneNumberValue(anyString());
+        verify(userRepository, times(1)).save(existingUser);
+    }
+
+
+    @Test
+    @DisplayName("Should return empty Optional when user not found for update")
+    void updateUser_shouldReturnEmptyOptionalWhenUserNotFound() {
+        User userDetails = new User("Any", "User", "any.email@example.com", "anyphone", "Any Address");
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        Optional<User> result = userService.updateUser(userId, userDetails);
+
+        assertThat(result).isEmpty();
+        verify(userRepository, times(1)).findById(userId);
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void createUser_shouldCreateUserWithValidPhoneNumberFormat() {
-        assertDoesNotThrow(() ->
-                new User("Jan", "Kowalski", "jan.kowalski@example.com", "123456789", "Test Address"));
+    @DisplayName("Should throw IllegalArgumentException when new email is already taken by another user")
+    void updateUser_shouldThrowExceptionWhenNewEmailTaken() {
+        User updatedDetails = new User("John", "Doe", "taken.email@example.com", "123456789", "123 Main St");
+        User existingUser = new User("John", "Doe", "john.doe@example.com", "123456789", "Original Address");
+        existingUser.setId(userId);
+
+        User conflictingUser = new User("Another", "User", "taken.email@example.com", "000000000", "Conflicting Address");
+        conflictingUser.setId(UUID.randomUUID());
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmailValue("taken.email@example.com")).thenReturn(Optional.of(conflictingUser));
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            userService.updateUser(userId, updatedDetails);
+        });
+
+        assertThat(thrown.getMessage()).isEqualTo("The new email address is already taken.");
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByEmailValue("taken.email@example.com");
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void createUser_shouldThrowExceptionWhenEmailAlreadyExists() {
-        User userToCreate = new User(
-                "Existing",
-                "User",
-                "jan.kowalski@example.com", // This email already exists for sampleUser
-                "987654321",
-                "Existing Address"
-        );
-        when(userRepository.findByEmailValue(userToCreate.getEmail().getValue())).thenReturn(Optional.of(sampleUser));
+    @DisplayName("Should throw IllegalArgumentException when new phone number is already taken by another user")
+    void updateUser_shouldThrowExceptionWhenNewPhoneNumberTaken() {
+        User updatedDetails = new User("John", "Doe", "john.doe@example.com", "999999999", "123 Main St");
+        User existingUser = new User("John", "Doe", "john.doe@example.com", "123456789", "Original Address");
+        existingUser.setId(userId);
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
-                userService.createUser(userToCreate));
+        User conflictingUser = new User("Another", "User", "another.email@example.com", "999999999", "Conflicting Address");
+        conflictingUser.setId(UUID.randomUUID());
 
-        assertEquals("Użytkownik o podanym adresie email już istnieje.", thrown.getMessage());
-        verify(userRepository, times(1)).findByEmailValue(userToCreate.getEmail().getValue());
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByPhoneNumberValue("999999999")).thenReturn(Optional.of(conflictingUser));
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            userService.updateUser(userId, updatedDetails);
+        });
+
+        assertThat(thrown.getMessage()).isEqualTo("The new phone number is already taken.");
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).findByEmailValue(anyString());
+        verify(userRepository, times(1)).findByPhoneNumberValue("999999999");
         verify(userRepository, never()).save(any(User.class));
     }
 
+
     @Test
-    void updateUser_shouldUpdateAndReturnUserWhenFound() {
-        User userDetails = new User(
-                sampleUserId,
-                new FirstName("Zmieniony"),
-                new LastName("Kowalski"),
-                new EmailAddress("zmieniony@example.com"),
-                new PhoneNumber("999888777"),
-                "Nowy Adres",
-                sampleUser.getRegistrationDate(),
-                true
-        );
+    @DisplayName("Should delete user successfully when user exists")
+    void deleteUser_shouldDeleteUserSuccessfully() {
+        when(userRepository.existsById(userId)).thenReturn(true);
+        doNothing().when(userRepository).deleteById(userId);
 
-        when(userRepository.findById(sampleUserId)).thenReturn(Optional.of(sampleUser));
-        when(userRepository.save(any(User.class))).thenReturn(userDetails);
+        userService.deleteUser(userId);
 
-        Optional<User> updatedUser = userService.updateUser(sampleUserId, userDetails);
-
-        assertTrue(updatedUser.isPresent());
-        assertEquals("Zmieniony", updatedUser.get().getFirstName().getValue());
-        assertEquals("zmieniony@example.com", updatedUser.get().getEmail().getValue());
-        verify(userRepository, times(1)).findById(sampleUserId);
-        verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, times(1)).existsById(userId);
+        verify(userRepository, times(1)).deleteById(userId);
     }
 
     @Test
-    void updateUser_shouldReturnEmptyWhenUserNotFound() {
-        User userDetails = new User(
-                UUID.randomUUID(), // Different ID
-                new FirstName("NonExistent"),
-                new LastName("User"),
-                new EmailAddress("nonexistent@example.com"),
-                new PhoneNumber("111111111"),
-                "Some Address",
-                LocalDate.now(),
-                true
-        );
-        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
-
-        Optional<User> updatedUser = userService.updateUser(UUID.randomUUID(), userDetails);
-
-        assertFalse(updatedUser.isPresent());
-        verify(userRepository, times(1)).findById(any(UUID.class));
-        verify(userRepository, never()).save(any(User.class));
-    }
-
-    @Test
-    void deleteUser_shouldDeleteUserWhenExists() {
-        when(userRepository.existsById(sampleUserId)).thenReturn(true);
-        doNothing().when(userRepository).deleteById(sampleUserId);
-
-        userService.deleteUser(sampleUserId);
-
-        verify(userRepository, times(1)).existsById(sampleUserId);
-        verify(userRepository, times(1)).deleteById(sampleUserId);
-    }
-
-    @Test
+    @DisplayName("Should throw IllegalArgumentException when deleting non-existent user")
     void deleteUser_shouldThrowExceptionWhenUserDoesNotExist() {
-        UUID nonExistentId = UUID.randomUUID();
-        when(userRepository.existsById(nonExistentId)).thenReturn(false);
+        when(userRepository.existsById(userId)).thenReturn(false);
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
-                userService.deleteUser(nonExistentId));
-        assertEquals("Użytkownik o ID " + nonExistentId + " nie istnieje.", thrown.getMessage());
-        verify(userRepository, times(1)).existsById(nonExistentId);
+        UserNotFoundException thrown = assertThrows(UserNotFoundException.class, () -> {
+            userService.deleteUser(userId);
+        });
+
+        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " does not exist.");
+        verify(userRepository, times(1)).existsById(userId);
         verify(userRepository, never()).deleteById(any(UUID.class));
     }
 
     @Test
-    void deactivateUser_shouldSetUserToInactive() {
-        when(userRepository.findById(sampleUserId)).thenReturn(Optional.of(sampleUser));
-        when(userRepository.save(any(User.class))).thenReturn(sampleUser); // Assuming save returns the modified user
+    @DisplayName("Should deactivate user successfully when user exists")
+    void deactivateUser_shouldDeactivateUserSuccessfully() {
+        User activeUser = user;
+        activeUser.setActive(true);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(activeUser));
+        when(userRepository.save(any(User.class))).thenReturn(activeUser);
 
-        Optional<User> result = userService.deactivateUser(sampleUserId);
+        userService.deactivateUser(userId);
 
-        assertTrue(result.isPresent());
-        assertFalse(result.get().isActive());
-        verify(userRepository, times(1)).findById(sampleUserId);
-        verify(userRepository, times(1)).save(sampleUser);
+        assertThat(activeUser.isActive()).isFalse();
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(activeUser);
     }
 
     @Test
-    void activateUser_shouldSetUserToActive() {
-        sampleUser.setActive(false); // Set to false initially for activation test
-        when(userRepository.findById(sampleUserId)).thenReturn(Optional.of(sampleUser));
-        when(userRepository.save(any(User.class))).thenReturn(sampleUser); // Assuming save returns the modified user
+    @DisplayName("Should throw IllegalArgumentException when deactivating non-existent user")
+    void deactivateUser_shouldThrowExceptionWhenUserDoesNotExist() {
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        Optional<User> result = userService.activateUser(sampleUserId);
+        UserNotFoundException thrown = assertThrows(UserNotFoundException.class, () -> {
+            userService.deactivateUser(userId);
+        });
 
-        assertTrue(result.isPresent());
-        assertTrue(result.get().isActive());
-        verify(userRepository, times(1)).findById(sampleUserId);
-        verify(userRepository, times(1)).save(sampleUser);
+        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " does not exist.");
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should activate user successfully when user exists")
+    void activateUser_shouldActivateUserSuccessfully() {
+        User inactiveUser = user;
+        inactiveUser.setActive(false);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(inactiveUser));
+        when(userRepository.save(any(User.class))).thenReturn(inactiveUser);
+
+        userService.activateUser(userId);
+
+        assertThat(inactiveUser.isActive()).isTrue();
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(inactiveUser);
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when activating non-existent user")
+    void activateUser_shouldThrowExceptionWhenUserDoesNotExist() {
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        UserNotFoundException thrown = assertThrows(UserNotFoundException.class, () -> {
+            userService.activateUser(userId);
+        });
+
+        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " does not exist.");
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).save(any(User.class));
     }
 }

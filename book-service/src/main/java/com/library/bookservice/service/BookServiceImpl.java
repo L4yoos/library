@@ -1,5 +1,6 @@
 package com.library.bookservice.service;
 
+import com.library.bookservice.exception.BookNotFoundException;
 import com.library.bookservice.model.Book;
 import com.library.bookservice.model.valueobjects.BookStock;
 import com.library.bookservice.repository.BookRepository;
@@ -34,7 +35,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public Book createBook(Book book) {
         if (bookRepository.findByIsbnValue(book.getIsbn().getValue()).isPresent()) {
-            throw new IllegalArgumentException("Książka o podanym numerze ISBN już istnieje.");
+            throw new IllegalArgumentException("The book with the ISBN number given already exists.");
         }
         return bookRepository.save(book);
     }
@@ -47,7 +48,7 @@ public class BookServiceImpl implements BookService {
                     existingBook.setAuthor(bookDetails.getAuthor());
                     if (bookDetails.getIsbn() != null && !existingBook.getIsbn().equals(bookDetails.getIsbn())) {
                         if (bookRepository.findByIsbnValue(bookDetails.getIsbn().getValue()).isPresent()) {
-                            throw new IllegalArgumentException("Nowy numer ISBN już istnieje w bazie.");
+                            throw new IllegalArgumentException("The new ISBN already exists in the database.");
                         }
                         existingBook.setIsbn(bookDetails.getIsbn());
                     }
@@ -66,7 +67,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public void deleteBook(UUID id) {
         if (!bookRepository.existsById(id)) {
-            throw new IllegalArgumentException("Książka o ID " + id + " nie istnieje.");
+            throw new BookNotFoundException("Book with ID " + id + " does not exist.");
         }
         bookRepository.deleteById(id);
     }
@@ -74,28 +75,39 @@ public class BookServiceImpl implements BookService {
     @Override
     public Optional<Book> increaseBookQuantity(UUID id, int count) {
         if (count <= 0) {
-            throw new IllegalArgumentException("Ilość do zwiększenia musi być większa od zera.");
+            throw new IllegalArgumentException("The quantity to be increased must be greater than zero.");
         }
-        return bookRepository.findById(id)
-                .map(book -> {
-                    book.setStock(new BookStock(
-                            book.getStock().getQuantity() + count,
-                            book.getStock().getAvailableCopies() + count
-                    ));
-                    return bookRepository.save(book);
-                });
+        return bookRepository.findById(id).map(book -> {
+            int currentAvailable = book.getStock().getAvailableCopies();
+            int totalQuantity = book.getStock().getQuantity();
+            int newAvailable = currentAvailable + count;
+
+            if (newAvailable > totalQuantity) {
+                throw new IllegalArgumentException("The number of copies available must not exceed the total number.");
+            }
+            book.setStock(new BookStock(totalQuantity, newAvailable));
+            return bookRepository.save(book);
+        });
     }
 
     @Override
     public Optional<Book> decreaseBookQuantity(UUID id, int count) {
         if (count <= 0) {
-            throw new IllegalArgumentException("Ilość do zmniejszenia musi być większa od zera.");
+            throw new IllegalArgumentException("The quantity to be reduced must be greater than zero.");
         }
         return bookRepository.findById(id)
                 .map(book -> {
+                    int currentAvailable = book.getStock().getAvailableCopies();
+                    int totalQuantity = book.getStock().getQuantity();
+                    int newAvailable = currentAvailable - count;
+
+                    if (newAvailable < 0) {
+                        throw new IllegalArgumentException("Insufficient quantity available. Cannot decrease by " + count + " as only " + currentAvailable + " are available.");
+                    }
+
                     book.setStock(new BookStock(
-                            book.getStock().getQuantity() - count,
-                            book.getStock().getAvailableCopies() - count
+                            totalQuantity,
+                            newAvailable
                     ));
                     return bookRepository.save(book);
                 });

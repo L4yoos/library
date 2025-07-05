@@ -1,5 +1,6 @@
 package com.library.userservice.dto;
 
+import com.library.userservice.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ public class UserResponseDTO {
     private LocalDate registrationDate;
     private boolean active;
 
-    public UserResponseDTO(com.library.userservice.model.User user) {
+    public UserResponseDTO(User user) {
         this.id = user.getId();
         this.firstName = user.getFirstName() != null ? user.getFirstName().getValue() : null;
         this.lastName = user.getLastName() != null ? user.getLastName().getValue() : null;

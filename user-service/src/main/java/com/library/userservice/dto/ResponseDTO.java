@@ -1,4 +1,4 @@
-package com.library.bookservice.dto;
+package com.library.userservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ErrorResponseDTO {
+public class ResponseDTO {
     private LocalDateTime timestamp;
     private int status;
     private String error;

@@ -16,7 +16,7 @@ import java.util.Objects;
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public class EmailAddress {
 
-    @NotBlank(message = "Adres email jest wymagany.")
+    @NotBlank(message = "An email address is required.")
     @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$", message = "Nieprawidłowy format adresu email.")
     private String value;
 

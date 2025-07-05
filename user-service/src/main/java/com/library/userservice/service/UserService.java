@@ -11,6 +11,6 @@ public interface UserService {
     User createUser(User user);
     Optional<User> updateUser(UUID id, User userDetails);
     void deleteUser(UUID id);
-    Optional<User> deactivateUser(UUID id);
-    Optional<User> activateUser(UUID id);
+    void deactivateUser(UUID id);
+    void activateUser(UUID id);
 }

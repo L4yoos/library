@@ -5,6 +5,7 @@ import com.library.loanservice.model.Loan;
 import com.library.loanservice.model.LoanStatus;
 import com.library.loanservice.service.LoanService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -49,6 +50,7 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should return a list of all loans")
     void getAllLoans_shouldReturnListOfLoans() throws Exception {
         when(loanService.getAllLoans()).thenReturn(Arrays.asList(sampleLoan));
 
@@ -63,6 +65,7 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should return a loan when found by ID")
     void getLoanById_shouldReturnLoan() throws Exception {
         when(loanService.getLoanById(sampleLoanId)).thenReturn(Optional.of(sampleLoan));
 
@@ -76,6 +79,7 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should return not found when loan is not found by ID")
     void getLoanById_shouldReturnNotFoundWhenNotFound() throws Exception {
         when(loanService.getLoanById(any(UUID.class))).thenReturn(Optional.empty());
 
@@ -86,6 +90,7 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should return a list of loans filtered by user ID")
     void getLoansByUserId_shouldReturnListOfLoans() throws Exception {
         when(loanService.getLoansByUserId(sampleUserId)).thenReturn(Arrays.asList(sampleLoan));
 
@@ -98,6 +103,7 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should return a list of loans filtered by book ID")
     void getLoansByBookId_shouldReturnListOfLoans() throws Exception {
         when(loanService.getLoansByBookId(sampleBookId)).thenReturn(Arrays.asList(sampleLoan));
 
@@ -110,6 +116,7 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should create and return a borrowed loan successfully")
     void borrowBook_shouldReturnCreatedLoan() throws Exception {
         Loan createdLoan = new Loan(UUID.randomUUID(), sampleBookId, sampleUserId, LocalDate.now(), null, LoanStatus.BORROWED);
 
@@ -127,9 +134,10 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should return bad request for invalid user or book when borrowing")
     void borrowBook_shouldReturnBadRequestForInvalidUserOrBook() throws Exception {
         when(loanService.borrowBook(any(UUID.class), any(UUID.class)))
-                .thenThrow(new IllegalArgumentException("Użytkownik lub książka nie istnieje."));
+                .thenThrow(new IllegalArgumentException("User or book does not exist."));
 
         mockMvc.perform(post("/api/loans/borrow")
                         .param("userId", sampleUserId.toString())
@@ -140,9 +148,10 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should return conflict when book is unavailable or already borrowed")
     void borrowBook_shouldReturnConflictWhenBookUnavailableOrAlreadyBorrowed() throws Exception {
         when(loanService.borrowBook(any(UUID.class), any(UUID.class)))
-                .thenThrow(new IllegalStateException("Książka niedostępna lub już wypożyczona."));
+                .thenThrow(new IllegalStateException("Book unavailable or already borrowed."));
 
         mockMvc.perform(post("/api/loans/borrow")
                         .param("userId", sampleUserId.toString())
@@ -153,6 +162,7 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should update loan status to returned and return OK status")
     void returnBook_shouldUpdateLoanStatusToReturnedAndReturnOkStatus() throws Exception {
         Loan returnedLoan = new Loan(sampleLoanId, sampleBookId, sampleUserId, LocalDate.now(), LocalDate.now(), LoanStatus.RETURNED);
         when(loanService.returnBook(sampleLoanId)).thenReturn(returnedLoan);
@@ -166,8 +176,9 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should return not found when loan does not exist for returning")
     void returnBook_shouldReturnNotFoundWhenLoanDoesNotExist() throws Exception {
-        when(loanService.returnBook(any(UUID.class))).thenThrow(new IllegalArgumentException("Wypożyczenie nie istnieje."));
+        when(loanService.returnBook(any(UUID.class))).thenThrow(new IllegalArgumentException("Loan does not exist."));
 
         mockMvc.perform(put("/api/loans/{loanId}/return", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -176,8 +187,9 @@ public class LoanControllerTest {
     }
 
     @Test
+    @DisplayName("Should return conflict when book is already returned")
     void returnBook_shouldReturnConflictWhenAlreadyReturned() throws Exception {
-        when(loanService.returnBook(any(UUID.class))).thenThrow(new IllegalStateException("Książka została już zwrócona."));
+        when(loanService.returnBook(any(UUID.class))).thenThrow(new IllegalStateException("Book has already been returned."));
 
         mockMvc.perform(put("/api/loans/{loanId}/return", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON))

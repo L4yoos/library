@@ -17,22 +17,16 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BookStock {
 
-    @Min(value = 0, message = "Liczba egzemplarzy nie może być ujemna.")
+    @Min(value = 0, message = "The number of copies must not be negative.")
     private int quantity;
 
-    @Min(value = 0, message = "Liczba dostępnych kopii nie może być ujemna.")
+    @Min(value = 0, message = "The number of available copies must not be negative.")
     private int availableCopies;
 
     @JsonCreator
     public BookStock(@JsonProperty("quantity") int quantity, @JsonProperty("availableCopies") int availableCopies) {
-        if (quantity < 0) {
-            throw new IllegalArgumentException("Liczba egzemplarzy nie może być ujemna.");
-        }
-        if (availableCopies < 0) {
-            throw new IllegalArgumentException("Liczba dostępnych kopii nie może być ujemna.");
-        }
         if (availableCopies > quantity) {
-            throw new IllegalArgumentException("Liczba dostępnych kopii nie może przekraczać całkowitej ilości.");
+            throw new IllegalArgumentException("The number of copies available must not exceed the total number.");
         }
         this.quantity = quantity;
         this.availableCopies = availableCopies;
@@ -40,20 +34,20 @@ public class BookStock {
 
     public BookStock incrementAvailableCopies(int count) {
         if (count <= 0) {
-            throw new IllegalArgumentException("Ilość do zwiększenia musi być większa od zera.");
+            throw new IllegalArgumentException("The quantity to be increased must be greater than zero.");
         }
         if (this.availableCopies + count > this.quantity) {
-            throw new IllegalStateException("Wszystkie egzemplarze książki są już dostępne. Dostępnych: " + this.availableCopies + ", całkowita ilość: " + this.quantity);
+            throw new IllegalStateException("All copies of the book are now available. Available: " + this.availableCopies + ", total quantity: " + this.quantity);
         }
         return new BookStock(this.quantity, this.availableCopies + count);
     }
 
     public BookStock decrementAvailableCopies(int count) {
         if (count <= 0) {
-            throw new IllegalArgumentException("Liczba do zmniejszenia musi być większa od zera.");
+            throw new IllegalArgumentException("The number to be reduced must be greater than zero.");
         }
         if (this.availableCopies - count < 0) {
-            throw new IllegalStateException("Książka nie jest obecnie dostępna do wypożyczenia. Dostępnych: " + this.availableCopies + ", próba wypożyczenia: " + count);
+            throw new IllegalStateException("The book is not currently available for loan. Available: " + this.availableCopies + ", loan attempt: " + count);
         }
         return new BookStock(this.quantity, this.availableCopies - count);
     }

@@ -16,8 +16,8 @@ import java.util.Objects;
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public class FirstName {
 
-    @NotBlank(message = "Imię nie może być puste.")
-    @Size(min = 2, max = 50, message = "Imię musi mieć od 2 do 50 znaków.")
+    @NotBlank(message = "First name is required.")
+    @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters long.")
     private String value;
 
     public FirstName(String value) {

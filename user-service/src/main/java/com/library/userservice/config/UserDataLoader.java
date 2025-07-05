@@ -24,7 +24,7 @@ public class UserDataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (userRepository.count() == 0) {
-            System.out.println("Ładowanie przykładowych danych użytkowników do bazy danych...");
+            System.out.println("Loading sample user data into the database....");
 
             User user1 = new User(
                     "Jan", "Kowalski", "jan.kowalski@example.com", "123456789", "Warszawska 1, Warszawa"
@@ -40,9 +40,9 @@ public class UserDataLoader implements CommandLineRunner {
 
             List<User> users = Arrays.asList(user1, user2, user3);
             userRepository.saveAll(users);
-            System.out.println("Zakończono ładowanie przykładowych danych użytkowników.");
+            System.out.println("Loading of sample user data has been completed.");
         } else {
-            System.out.println("Baza danych użytkowników już zawiera rekordy. Pomijam ładowanie danych startowych.");
+            System.out.println("The user database already contains records. I omit loading the start-up data.");
         }
     }
 }

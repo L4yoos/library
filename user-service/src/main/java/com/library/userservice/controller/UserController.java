@@ -1,6 +1,8 @@
 package com.library.userservice.controller;
 
+import com.library.userservice.dto.ResponseDTO;
 import com.library.userservice.dto.UserResponseDTO;
+import com.library.userservice.exception.UserNotFoundException;
 import com.library.userservice.model.User;
 import com.library.userservice.service.UserService;
 import jakarta.validation.Valid;
@@ -9,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,35 +41,87 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody User user) {
         User createdUser = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new UserResponseDTO(createdUser));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable UUID id, @Valid @RequestBody User userDetails) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody User userDetails) {
         Optional<User> updatedUser = userService.updateUser(id, userDetails);
-        return updatedUser.map(ResponseEntity::ok)
+        return updatedUser.map(user -> ResponseEntity.ok(new UserResponseDTO(user)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ResponseDTO> deleteUser(@PathVariable UUID id) {
+        try {
+            userService.deleteUser(id);
+            ResponseDTO response = new ResponseDTO(
+                    LocalDateTime.now(),
+                    HttpStatus.OK.value(),
+                    null,
+                    "User with ID " + id + " deleted successfully.",
+                    "/api/users/" + id
+            );
+            return ResponseEntity.ok(response);
+        } catch (UserNotFoundException e) {
+            ResponseDTO errorResponse = new ResponseDTO(
+                    LocalDateTime.now(),
+                    HttpStatus.NOT_FOUND.value(),
+                    "Not Found",
+                    e.getMessage(),
+                    "/api/users/" + id
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 
     @PutMapping("/{id}/deactivate")
-    public ResponseEntity<User> deactivateUser(@PathVariable UUID id) {
-        Optional<User> deactivatedUser = userService.deactivateUser(id);
-        return deactivatedUser.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ResponseDTO> deactivateUser(@PathVariable UUID id) {
+        try {
+            userService.deactivateUser(id);
+            ResponseDTO response = new ResponseDTO(
+                    LocalDateTime.now(),
+                    HttpStatus.OK.value(),
+                    null,
+                    "User with ID " + id + " deactivated successfully.",
+                    "/api/users/" + id + "/deactivate"
+            );
+            return ResponseEntity.ok(response);
+        } catch (UserNotFoundException e) {
+            ResponseDTO errorResponse = new ResponseDTO(
+                    LocalDateTime.now(),
+                    HttpStatus.NOT_FOUND.value(),
+                    "Not Found",
+                    e.getMessage(),
+                    "/api/users/" + id + "/deactivate"
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 
     @PutMapping("/{id}/activate")
-    public ResponseEntity<User> activateUser(@PathVariable UUID id) {
-        Optional<User> activatedUser = userService.activateUser(id);
-        return activatedUser.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ResponseDTO> activateUser(@PathVariable UUID id) {
+        try {
+            userService.activateUser(id);
+            ResponseDTO response = new ResponseDTO(
+                    LocalDateTime.now(),
+                    HttpStatus.OK.value(),
+                    null,
+                    "User with ID " + id + " activated successfully.",
+                    "/api/users/" + id + "/activate"
+            );
+            return ResponseEntity.ok(response);
+        } catch (UserNotFoundException e) {
+            ResponseDTO errorResponse = new ResponseDTO(
+                    LocalDateTime.now(),
+                    HttpStatus.NOT_FOUND.value(),
+                    "Not Found",
+                    e.getMessage(),
+                    "/api/users/" + id + "/activate"
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 }

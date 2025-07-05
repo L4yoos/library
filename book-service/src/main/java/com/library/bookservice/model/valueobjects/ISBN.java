@@ -18,9 +18,9 @@ import java.util.Objects;
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public class ISBN {
 
-    @NotBlank(message = "ISBN jest wymagany.")
+    @NotBlank(message = "ISBN is required.")
     @Pattern(regexp = "^(978|979)-\\d{1,5}-\\d{1,7}-\\d{1,6}-[0-9X]$",
-            message = "Nieprawidłowy format ISBN.")
+            message = "Incorrect ISBN format.")
     @JsonValue
     private String value;
 

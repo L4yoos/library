@@ -16,8 +16,8 @@ import java.util.Objects;
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public class PhoneNumber {
 
-    @NotBlank(message = "Numer telefonu jest wymagany.")
-    @Pattern(regexp = "^\\d{9}$", message = "Nieprawidłowy format numeru telefonu.")
+    @NotBlank(message = "A telephone number is required.")
+    @Pattern(regexp = "^\\d{9}$", message = "Incorrect phone number format.")
     private String value;
 
     public PhoneNumber(String value) {

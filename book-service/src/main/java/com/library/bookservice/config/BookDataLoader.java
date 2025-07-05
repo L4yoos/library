@@ -21,7 +21,7 @@ public class BookDataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (bookRepository.count() == 0) {
-            System.out.println("Ładowanie przykładowych danych książek do bazy danych...");
+            System.out.println("Loading sample book data into the database...");
 
             List<Book> books = Arrays.asList(
                     new Book("Wiedźmin: Ostatnie Życzenie", "Andrzej Sapkowski", new ISBN("978-83-7578-065-0"), 1993, "SuperNOWA", "Fantasy", new BookStock(5, 5)),
@@ -37,9 +37,9 @@ public class BookDataLoader implements CommandLineRunner {
             );
             bookRepository.saveAll(books);
 
-            System.out.println("Zakończono ładowanie przykładowych danych.");
+            System.out.println("Loading of sample data has been completed.");
         } else {
-            System.out.println("Baza danych książek już zawiera rekordy. Pomijam ładowanie danych startowych.");
+            System.out.println("The book database already contains records. I omit loading the start data.");
         }
     }
 }

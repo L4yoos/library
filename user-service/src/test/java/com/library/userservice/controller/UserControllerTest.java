@@ -1,277 +1,249 @@
 package com.library.userservice.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.library.userservice.dto.ResponseDTO;
+import com.library.userservice.dto.UserResponseDTO;
+import com.library.userservice.exception.UserNotFoundException;
 import com.library.userservice.model.User;
-import com.library.userservice.model.valueobjects.EmailAddress;
-import com.library.userservice.model.valueobjects.FirstName;
-import com.library.userservice.model.valueobjects.LastName;
-import com.library.userservice.model.valueobjects.PhoneNumber;
 import com.library.userservice.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(UserController.class)
-public class UserControllerTest {
+@ExtendWith(MockitoExtension.class)
+class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private UserService userService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @InjectMocks
+    private UserController userController;
 
-    private UUID sampleUserId;
-    private User sampleUser;
+    private UUID userId;
+    private User user;
+    private UserResponseDTO userResponseDTO;
 
     @BeforeEach
     void setUp() {
-        sampleUserId = UUID.randomUUID();
-        sampleUser = new User(sampleUserId,
-                new FirstName("Jan"),
-                new LastName("Kowalski"),
-                new EmailAddress("jan.kowalski@example.com"),
-                new PhoneNumber("123456789"),
-                "Warszawska 1, Warszawa",
-                LocalDate.now(),
-                true);
+        userId = UUID.randomUUID();
+        user = new User(
+                "John",
+                "Doe",
+                "john.doe@example.com",
+                "123456789",
+                "123 Main St"
+        );
+        user.setId(userId);
+        user.setRegistrationDate(LocalDate.now());
+        user.setActive(true);
+
+        userResponseDTO = new UserResponseDTO(user);
     }
 
     @Test
-    void createUser_shouldReturnCreatedUser() throws Exception {
-        User userToCreate = new User("Test", "User", "test.user@example.com", "987654321", "Test Address");
+    @DisplayName("Should return all users successfully")
+    void getAllUsers_shouldReturnListOfUsers() {
+        List<User> users = Arrays.asList(user, new User("Jane", "Smith", "jane.smith@example.com", "987654321", "456 Oak Ave"));
+        when(userService.getAllUsers()).thenReturn(users);
 
-        User createdUser = new User(UUID.randomUUID(), new FirstName("Test"), new LastName("User"),
-                new EmailAddress("test.user@example.com"), new PhoneNumber("987654321"),
-                "Test Address", LocalDate.now(), true);
+        ResponseEntity<List<UserResponseDTO>> responseEntity = userController.getAllUsers();
 
-        when(userService.createUser(any(User.class))).thenReturn(createdUser);
-
-        mockMvc.perform(post("/api/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userToCreate)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.firstName.value").value("Test"))
-                .andExpect(jsonPath("$.lastName.value").value("User"))
-                .andExpect(jsonPath("$.email.value").value("test.user@example.com"))
-                .andExpect(jsonPath("$.phoneNumber.value").value("987654321"))
-                .andExpect(jsonPath("$.address").value("Test Address"))
-                .andExpect(jsonPath("$.active").value(true))
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.registrationDate").exists());
-
-        verify(userService, times(1)).createUser(any(User.class));
-    }
-
-    @Test
-    void createUser_shouldReturnBadRequestWhenFirstNameValidationFails() throws Exception {
-        String invalidUserJson = "{\"firstName\": {\"value\": \"\"}, " +
-                "\"lastName\": {\"value\": \"Kowalski\"}, " +
-                "\"email\": {\"value\": \"test@example.com\"}, " +
-                "\"phoneNumber\": {\"value\": \"555123456\"}, " +
-                "\"address\": \"Adres\"}";
-
-        mockMvc.perform(post("/api/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidUserJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Validation Error"))
-                .andExpect(jsonPath("$.message").value("Walidacja danych wejściowych nie powiodła się. Sprawdź poprawność danych."))
-                .andExpect(jsonPath("$.path").value("/api/users"));
-        verify(userService, never()).createUser(any(User.class));
-    }
-
-    @Test
-    void createUser_shouldReturnBadRequestWhenEmailFormatInvalid() throws Exception {
-        String invalidEmailUserJson = "{\"firstName\": {\"value\": \"Jan\"}, " +
-                "\"lastName\": {\"value\": \"Kowalski\"}, " +
-                "\"email\": {\"value\": \"invalid-email\"}, " +
-                "\"phoneNumber\": {\"value\": \"555123456\"}, " +
-                "\"address\": \"Adres\"}";
-
-        mockMvc.perform(post("/api/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidEmailUserJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Validation Error"))
-                .andExpect(jsonPath("$.message").value("Walidacja danych wejściowych nie powiodła się. Sprawdź poprawność danych."))
-                .andExpect(jsonPath("$.path").value("/api/users"));
-        verify(userService, never()).createUser(any(User.class));
-    }
-
-    @Test
-    void createUser_shouldReturnBadRequestWhenEmailAlreadyExists() throws Exception {
-        User userDetails = new User(
-                "NonExistent",
-                "User",
-                "nonexistent@example.com",
-                "111111111",
-                "Some Address");
-        String errorMessage = "Użytkownik o podanym adresie email już istnieje.";
-
-        doThrow(new IllegalArgumentException(errorMessage))
-                .when(userService).createUser(any(User.class));
-
-        mockMvc.perform(post("/api/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDetails)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Bad Request"))
-                .andExpect(jsonPath("$.message").value(errorMessage))
-                .andExpect(jsonPath("$.path").value("/api/users"));
-        verify(userService, times(1)).createUser(any(User.class));
-    }
-
-    @Test
-    void getAllUsers_shouldReturnListOfUsers() throws Exception {
-        when(userService.getAllUsers()).thenReturn(List.of(sampleUser));
-
-        mockMvc.perform(get("/api/users")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].firstName").value("Jan"))
-                .andExpect(jsonPath("$", hasSize(1)));
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody()).hasSize(2);
+        assertThat(responseEntity.getBody().get(0).getId()).isEqualTo(userResponseDTO.getId());
         verify(userService, times(1)).getAllUsers();
     }
 
     @Test
-    void getUserById_shouldReturnUser() throws Exception {
-        when(userService.getUserById(sampleUserId)).thenReturn(Optional.of(sampleUser));
+    @DisplayName("Should return user by ID when found")
+    void getUserById_shouldReturnUserWhenFound() {
+        when(userService.getUserById(userId)).thenReturn(Optional.of(user));
 
-        mockMvc.perform(get("/api/users/{id}", sampleUserId)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.firstName").value("Jan"));
-        verify(userService, times(1)).getUserById(sampleUserId);
+        ResponseEntity<UserResponseDTO> responseEntity = userController.getUserById(userId);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().getId()).isEqualTo(userId);
+        assertThat(responseEntity.getBody().getEmail()).isEqualTo(userResponseDTO.getEmail());
+        verify(userService, times(1)).getUserById(userId);
     }
 
     @Test
-    void getUserById_shouldReturnNotFoundWhenNotFound() throws Exception {
-        when(userService.getUserById(any(UUID.class))).thenReturn(Optional.empty());
+    @DisplayName("Should return 404 Not Found when user by ID is not found")
+    void getUserById_shouldReturnNotFoundWhenNotFound() {
+        when(userService.getUserById(userId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/users/{id}", UUID.randomUUID())
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-        verify(userService, times(1)).getUserById(any(UUID.class));
+        ResponseEntity<UserResponseDTO> responseEntity = userController.getUserById(userId);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(responseEntity.getBody()).isNull();
+        verify(userService, times(1)).getUserById(userId);
     }
 
     @Test
-    void updateUser_shouldReturnUpdatedUser() throws Exception {
-        User updatedUser = new User(sampleUserId,
-                new FirstName("Zmieniony"),
-                new LastName("Kowalski"),
-                new EmailAddress("zmieniony@example.com"),
-                new PhoneNumber("999888777"),
-                "Nowy Adres 1, Nowa",
-                sampleUser.getRegistrationDate(),
-                true);
+    @DisplayName("Should create a new user successfully")
+    void createUser_shouldCreateUserSuccessfully() {
+        User newUser = new User("New", "User", "new.user@example.com", "111222333", "789 Pine Rd");
+        User createdUser = new User("New", "User", "new.user@example.com", "111222333", "789 Pine Rd");
+        createdUser.setId(UUID.randomUUID());
+        createdUser.setRegistrationDate(LocalDate.now());
+        createdUser.setActive(true);
 
-        when(userService.updateUser(eq(sampleUserId), any(User.class))).thenReturn(Optional.of(updatedUser));
+        when(userService.createUser(any(User.class))).thenReturn(createdUser);
 
-        mockMvc.perform(put("/api/users/{id}", sampleUserId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedUser)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.firstName.value").value("Zmieniony"))
-                .andExpect(jsonPath("$.email.value").value("zmieniony@example.com"));
-        verify(userService, times(1)).updateUser(eq(sampleUserId), any(User.class));
+        ResponseEntity<UserResponseDTO> responseEntity = userController.createUser(newUser);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().getEmail()).isEqualTo(createdUser.getEmail().getValue());
+        assertThat(responseEntity.getBody().getRegistrationDate()).isEqualTo(createdUser.getRegistrationDate());
+        verify(userService, times(1)).createUser(any(User.class));
     }
 
     @Test
-    void updateUser_shouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
-        User userDetails = new User(
-                "NonExistent",
-                "User",
-                "nonexistent@example.com",
-                "111111111",
-                "Some Address");
-        when(userService.updateUser(any(UUID.class), any(User.class))).thenReturn(Optional.empty());
+    @DisplayName("Should update an existing user successfully")
+    void updateUser_shouldUpdateUserSuccessfully() {
+        User updatedDetails = new User("Updated", "Name", "john.doe@example.com", "123456789", "123 Main St Updated");
+        User updatedUser = new User("Updated", "Name", "john.doe@example.com", "123456789", "123 Main St Updated");
+        updatedUser.setId(userId);
+        updatedUser.setRegistrationDate(user.getRegistrationDate());
+        updatedUser.setActive(true);
 
-        mockMvc.perform(put("/api/users/{id}", UUID.randomUUID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDetails)))
-                .andExpect(status().isNotFound());
-        verify(userService, times(1)).updateUser(any(UUID.class), any(User.class));
+        when(userService.updateUser(eq(userId), any(User.class))).thenReturn(Optional.of(updatedUser));
+
+        ResponseEntity<UserResponseDTO> responseEntity = userController.updateUser(userId, updatedDetails);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().getFirstName()).isEqualTo(updatedUser.getFirstName().getValue());
+        assertThat(responseEntity.getBody().getRegistrationDate()).isEqualTo(updatedUser.getRegistrationDate());
+        verify(userService, times(1)).updateUser(eq(userId), any(User.class));
     }
 
     @Test
-    void deleteUser_shouldReturnNoContent() throws Exception {
-        doNothing().when(userService).deleteUser(sampleUserId);
+    @DisplayName("Should return 404 Not Found when user not found for update")
+    void updateUser_shouldReturnNotFoundWhenUserNotFound() {
+        User updatedDetails = new User("Updated", "Name", "john.doe@example.com", "123456789", "123 Main St Updated");
+        when(userService.updateUser(eq(userId), any(User.class))).thenReturn(Optional.empty());
 
-        mockMvc.perform(delete("/api/users/{id}", sampleUserId))
-                .andExpect(status().isNoContent());
-        verify(userService, times(1)).deleteUser(sampleUserId);
+        ResponseEntity<UserResponseDTO> responseEntity = userController.updateUser(userId, updatedDetails);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(responseEntity.getBody()).isNull();
+        verify(userService, times(1)).updateUser(eq(userId), any(User.class));
     }
 
     @Test
-    void deleteUser_shouldReturnBadRequestWhenUserDoesNotExist() throws Exception {
-        UUID nonExistentId = UUID.randomUUID();
-        String errorMessage = "Użytkownik o ID " + nonExistentId + " nie istnieje.";
-        doThrow(new IllegalArgumentException(errorMessage))
-                .when(userService).deleteUser(nonExistentId);
+    @DisplayName("Should delete user successfully and return success message")
+    void deleteUser_shouldReturnOkWithMessage() {
+        doNothing().when(userService).deleteUser(userId);
 
-        mockMvc.perform(delete("/api/users/{id}", nonExistentId))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Bad Request"))
-                .andExpect(jsonPath("$.message").value(errorMessage))
-                .andExpect(jsonPath("$.path").value("/api/users/" + nonExistentId));
-        verify(userService, times(1)).deleteUser(nonExistentId);
+        ResponseEntity<ResponseDTO> responseEntity = userController.deleteUser(userId);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().getMessage()).contains("deleted successfully");
+        assertThat(responseEntity.getBody().getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(responseEntity.getBody().getError()).isNull();
+        verify(userService, times(1)).deleteUser(userId);
     }
 
     @Test
-    void deactivateUser_shouldReturnDeactivatedUser() throws Exception {
-        User deactivatedUser = new User(sampleUserId,
-                sampleUser.getFirstName(), sampleUser.getLastName(),
-                sampleUser.getEmail(), sampleUser.getPhoneNumber(),
-                sampleUser.getAddress(), sampleUser.getRegistrationDate(), false);
+    @DisplayName("Should return 404 Not Found when deleting a non-existent user")
+    void deleteUser_shouldReturnNotFoundWhenUserDoesNotExist() {
+        String errorMessage = "User with ID " + userId + " does not exist.";
+        doThrow(new UserNotFoundException(errorMessage)).when(userService).deleteUser(userId);
 
-        when(userService.deactivateUser(sampleUserId)).thenReturn(Optional.of(deactivatedUser));
+        ResponseEntity<ResponseDTO> responseEntity = userController.deleteUser(userId);
 
-        mockMvc.perform(put("/api/users/{id}/deactivate", sampleUserId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.active").value(false));
-        verify(userService, times(1)).deactivateUser(sampleUserId);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().getMessage()).isEqualTo(errorMessage);
+        assertThat(responseEntity.getBody().getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(responseEntity.getBody().getError()).isEqualTo("Not Found");
+        verify(userService, times(1)).deleteUser(userId);
     }
 
     @Test
-    void activateUser_shouldReturnActivatedUser() throws Exception {
-        User activatedUser = new User(sampleUserId,
-                sampleUser.getFirstName(), sampleUser.getLastName(),
-                sampleUser.getEmail(), sampleUser.getPhoneNumber(),
-                sampleUser.getAddress(), sampleUser.getRegistrationDate(), true);
+    @DisplayName("Should deactivate user successfully and return success message")
+    void deactivateUser_shouldReturnOkWithMessage() {
+        User deactivatedUser = user;
+        deactivatedUser.setActive(false);
+        doNothing().when(userService).deactivateUser(userId);
 
-        when(userService.activateUser(sampleUserId)).thenReturn(Optional.of(activatedUser));
+        ResponseEntity<ResponseDTO> responseEntity = userController.deactivateUser(userId);
 
-        mockMvc.perform(put("/api/users/{id}/activate", sampleUserId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.active").value(true));
-        verify(userService, times(1)).activateUser(sampleUserId);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().getMessage()).contains("deactivated successfully");
+        assertThat(responseEntity.getBody().getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(responseEntity.getBody().getError()).isNull();
+        verify(userService, times(1)).deactivateUser(userId);
+    }
+
+    @Test
+    @DisplayName("Should return 404 Not Found when deactivating a non-existent user")
+    void deactivateUser_shouldReturnNotFoundWhenUserDoesNotExist() {
+        String errorMessage = "User with ID " + userId + " does not exist.";
+        doThrow(new UserNotFoundException(errorMessage)).when(userService).deactivateUser(userId);
+
+        ResponseEntity<ResponseDTO> responseEntity = userController.deactivateUser(userId);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().getMessage()).isEqualTo(errorMessage);
+        assertThat(responseEntity.getBody().getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(responseEntity.getBody().getError()).isEqualTo("Not Found");
+        verify(userService, times(1)).deactivateUser(userId);
+    }
+
+    @Test
+    @DisplayName("Should activate user successfully and return success message")
+    void activateUser_shouldReturnOkWithMessage() {
+        User activatedUser = user;
+        activatedUser.setActive(true);
+        doNothing().when(userService).activateUser(userId);
+
+        ResponseEntity<ResponseDTO> responseEntity = userController.activateUser(userId);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().getMessage()).contains("activated successfully");
+        assertThat(responseEntity.getBody().getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(responseEntity.getBody().getError()).isNull();
+        verify(userService, times(1)).activateUser(userId);
+    }
+
+    @Test
+    @DisplayName("Should return 404 Not Found when activating a non-existent user")
+    void activateUser_shouldReturnNotFoundWhenUserDoesNotExist() {
+        String errorMessage = "User with ID " + userId + " does not exist.";
+        doThrow(new UserNotFoundException(errorMessage)).when(userService).activateUser(userId);
+
+        ResponseEntity<ResponseDTO> responseEntity = userController.activateUser(userId);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().getMessage()).isEqualTo(errorMessage);
+        assertThat(responseEntity.getBody().getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(responseEntity.getBody().getError()).isEqualTo("Not Found");
+        verify(userService, times(1)).activateUser(userId);
     }
 }

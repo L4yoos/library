@@ -25,10 +25,10 @@ public class Book {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @NotBlank(message = "Tytuł jest wymagany")
+    @NotBlank(message = "Title is required")
     private String title;
 
-    @NotBlank(message = "Autor jest wymagany")
+    @NotBlank(message = "Author is required")
     private String author;
 
     @Embedded
@@ -38,11 +38,11 @@ public class Book {
     })
     private ISBN isbn;
 
-    @NotNull(message = "Rok wydania jest wymagany")
-    @Min(value = 1000, message = "Rok wydania musi być rokiem z czterema cyframi")
+    @NotNull(message = "The year of release is required")
+    @Min(value = 1000, message = "The year of release must be a year with four digits")
     private Integer publicationYear;
 
-    @NotBlank(message = "Wydawnictwo jest wymagane")
+    @NotBlank(message = "Publisher is required")
     private String publisher;
 
     private String genre;
@@ -61,7 +61,7 @@ public class Book {
         this.title = title;
         this.author = author;
         this.isbn = isbn;
-        this.publicationYear = publicationYear; // Auto-boxing int do Integer
+        this.publicationYear = publicationYear;
         this.publisher = publisher;
         this.genre = genre;
         this.stock = stock;

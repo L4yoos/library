@@ -54,12 +54,12 @@ public class User {
     })
     private PhoneNumber phoneNumber;
 
-    @NotBlank(message = "Adres jest wymagany")
+    @NotBlank(message = "The address is required")
     private String address;
 
     private LocalDate registrationDate;
 
-    private boolean active = true;
+    private boolean active;
 
     public User(String firstNameValue, String lastNameValue,
                 String emailValue, String phoneNumberValue, String address) {
@@ -69,5 +69,13 @@ public class User {
         this.email = new EmailAddress(emailValue);
         this.phoneNumber = new PhoneNumber(phoneNumberValue);
         this.address = address;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (registrationDate == null) {
+            registrationDate = LocalDate.now();
+        }
+        this.active = true;
     }
 }

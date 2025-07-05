@@ -20,23 +20,24 @@ public class Loan {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotNull(message = "ID książki jest wymagane")
+    @NotNull(message = "Book ID is required")
     private UUID bookId;
 
-    @NotNull(message = "ID użytkownika jest wymagane")
+    @NotNull(message = "User ID is required")
     private UUID userId;
 
-    @NotNull(message = "Data wypożyczenia jest wymagana")
+    @NotNull(message = "Loan date is required")
     private LocalDate loanDate;
 
     private LocalDate returnDate;
 
-    @NotNull(message = "Status wypożyczenia jest wymagany")
+    @NotNull(message = "Loan status is required")
     @Enumerated(EnumType.STRING)
     private LoanStatus status;
 
     // Pole na podatek lub karę za przetrzymanie - opcjonalne, na przyszłość
     // private Double fineAmount;
+    //TODO
 
     public Loan(UUID bookId, UUID userId, LocalDate loanDate, LocalDate returnDate, LoanStatus status) {
         this.bookId = bookId;

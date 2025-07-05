@@ -3,11 +3,14 @@ package com.library.loanservice.service;
 import com.library.loanservice.dto.BookDTO;
 import com.library.loanservice.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -16,7 +19,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RestClientServiceImpl implements RestClientService {
 
-    private final RestTemplate restTemplate;
+    private static final Logger log = LoggerFactory.getLogger(RestClientServiceImpl.class);
+
+    private final WebClient webClient;
 
     @Value("${book-service.url}")
     private String bookServiceUrl;
@@ -25,62 +30,80 @@ public class RestClientServiceImpl implements RestClientService {
     private String userServiceUrl;
 
     @Override
-    public Optional<BookDTO> getBookById(UUID bookId) {
+    public Mono<Optional<BookDTO>> getBookById(UUID bookId) {
         String url = bookServiceUrl + "/" + bookId;
-        try {
-            ResponseEntity<BookDTO> response = restTemplate.getForEntity(url, BookDTO.class);
-            return Optional.ofNullable(response.getBody());
-        } catch (HttpClientErrorException.NotFound e) {
-            return Optional.empty();
-        } catch (Exception e) {
-            System.err.println("Błąd komunikacji z Book Service podczas pobierania książki (ID: " + bookId + "): " + e.getMessage());
-            return Optional.empty();
-        }
+        return webClient.get()
+                .uri(url)
+                .retrieve()
+                .onStatus(status -> status == HttpStatus.NOT_FOUND,
+                        response -> Mono.error(new RuntimeException("Book not found (404)")))
+                .bodyToMono(BookDTO.class)
+                .map(Optional::of)
+                .defaultIfEmpty(Optional.empty())
+                .onErrorResume(e -> handleOptionalError("Book", bookId, e));
     }
 
     @Override
-    public Optional<UserDTO> getUserById(UUID userId) {
+    public Mono<Optional<UserDTO>> getUserById(UUID userId) {
         String url = userServiceUrl + "/" + userId;
-        try {
-            ResponseEntity<String> rawResponse = restTemplate.getForEntity(url, String.class); // Get as String first
-            System.out.println("Raw User Service Response for ID " + userId + ": " + rawResponse.getBody()); // Log it
-            ResponseEntity<UserDTO> response = restTemplate.getForEntity(url, UserDTO.class); // Then try with DTO
-            return Optional.ofNullable(response.getBody());
-        } catch (HttpClientErrorException.NotFound e) {
-            return Optional.empty();
-        } catch (Exception e) {
-            System.err.println("Błąd komunikacji z User Service podczas pobierania użytkownika (ID: " + userId + "): " + e.getMessage());
-            return Optional.empty();
-        }
+        return webClient.get()
+                .uri(url)
+                .retrieve()
+                .onStatus(status -> status == HttpStatus.NOT_FOUND,
+                        response -> Mono.error(new RuntimeException("User not found (404)")))
+                .bodyToMono(UserDTO.class)
+                .map(Optional::of)
+                .defaultIfEmpty(Optional.empty())
+                .onErrorResume(e -> handleOptionalError("User", userId, e));
     }
 
     @Override
-    public boolean borrowBookInBookService(UUID bookId) {
+    public Mono<Boolean> borrowBookInBookService(UUID bookId) {
         String url = bookServiceUrl + "/" + bookId + "/borrow";
-        try {
-            restTemplate.put(url, null);
-            return true;
-        } catch (HttpClientErrorException e) {
-            System.err.println("Błąd HTTP podczas próby wypożyczenia książki w Book Service (ID: " + bookId + "): " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            return false;
-        } catch (Exception e) {
-            System.err.println("Błąd komunikacji z Book Service podczas wypożyczania (ID: " + bookId + "): " + e.getMessage());
-            return false;
-        }
+        return webClient.put()
+                .uri(url)
+                .retrieve()
+                .onStatus(status -> status.isError(), response ->
+                        Mono.error(new RuntimeException("Error"))
+                )
+                .bodyToMono(Void.class)
+                .thenReturn(true)
+                .onErrorResume(e -> handleBooleanError("borrowing", bookId, e));
     }
 
     @Override
-    public boolean returnBookInBookService(UUID bookId) {
+    public Mono<Boolean> returnBookInBookService(UUID bookId) {
         String url = bookServiceUrl + "/" + bookId + "/return";
-        try {
-            restTemplate.put(url, null);
-            return true;
-        } catch (HttpClientErrorException e) {
-            System.err.println("Błąd HTTP podczas próby zwracania książki w Book Service (ID: " + bookId + "): " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            return false;
-        } catch (Exception e) {
-            System.err.println("Błąd komunikacji z Book Service podczas zwracania (ID: " + bookId + "): " + e.getMessage());
-            return false;
+        return webClient.put()
+                .uri(url)
+                .retrieve()
+                .onStatus(status -> status.isError(), response ->
+                        Mono.error(new RuntimeException("Error"))
+                )
+                .bodyToMono(Void.class)
+                .thenReturn(true)
+                .onErrorResume(e -> handleBooleanError("returning", bookId, e));
+    }
+
+    private <T> Mono<Optional<T>> handleOptionalError(String resource, UUID id, Throwable e) {
+        if (e instanceof WebClientResponseException) {
+            WebClientResponseException ex = (WebClientResponseException) e;
+            log.warn("Communication error with {} Service while retrieving {} (ID: {}): {} - {}",
+                    resource, resource.toLowerCase(), id, ex.getStatusCode(), ex.getMessage());
+        } else {
+            log.error("Unexpected error while retrieving {} (ID: {}): {}", resource.toLowerCase(), id, e.getMessage(), e);
         }
+        return Mono.just(Optional.empty());
+    }
+
+    private Mono<Boolean> handleBooleanError(String action, UUID bookId, Throwable e) {
+        if (e instanceof WebClientResponseException) {
+            WebClientResponseException ex = (WebClientResponseException) e;
+            log.warn("Communication error with Book Service while {} book (ID: {}): {} - {}",
+                    action, bookId, ex.getStatusCode(), ex.getMessage());
+        } else {
+            log.error("Unexpected error while {} book (ID: {}): {}", action, bookId, e.getMessage(), e);
+        }
+        return Mono.just(false);
     }
 }
