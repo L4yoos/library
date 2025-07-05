@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -16,14 +17,14 @@ import java.time.LocalDate;
 public class Loan {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotNull(message = "ID książki jest wymagane")
-    private Long bookId;
+    private UUID bookId;
 
     @NotNull(message = "ID użytkownika jest wymagane")
-    private Long userId;
+    private UUID userId;
 
     @NotNull(message = "Data wypożyczenia jest wymagana")
     private LocalDate loanDate;
@@ -36,4 +37,12 @@ public class Loan {
 
     // Pole na podatek lub karę za przetrzymanie - opcjonalne, na przyszłość
     // private Double fineAmount;
+
+    public Loan(UUID bookId, UUID userId, LocalDate loanDate, LocalDate returnDate, LoanStatus status) {
+        this.bookId = bookId;
+        this.userId = userId;
+        this.loanDate = loanDate;
+        this.returnDate = returnDate;
+        this.status = status;
+    }
 }

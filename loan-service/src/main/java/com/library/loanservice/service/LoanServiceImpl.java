@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,22 +24,22 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public Optional<Loan> getLoanById(Long id) {
+    public Optional<Loan> getLoanById(UUID id) {
         return loanRepository.findById(id);
     }
 
     @Override
-    public List<Loan> getLoansByUserId(Long userId) {
+    public List<Loan> getLoansByUserId(UUID userId) {
         return loanRepository.findByUserId(userId);
     }
 
     @Override
-    public List<Loan> getLoansByBookId(Long bookId) {
+    public List<Loan> getLoansByBookId(UUID bookId) {
         return loanRepository.findByBookId(bookId);
     }
 
     @Override
-    public Loan borrowBook(Long userId, Long bookId) {
+    public Loan borrowBook(UUID userId, UUID bookId) {
         if (restClientService.getUserById(userId).isEmpty()) {
             throw new IllegalArgumentException("Użytkownik o ID " + userId + " nie istnieje.");
         }
@@ -63,7 +64,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public Loan returnBook(Long loanId) {
+    public Loan returnBook(UUID loanId) {
         Optional<Loan> optionalLoan = loanRepository.findById(loanId);
 
         if (optionalLoan.isEmpty()) {

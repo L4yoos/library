@@ -154,7 +154,7 @@ public class UserControllerTest {
         mockMvc.perform(get("/api/users")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].firstName.value").value("Jan"))
+                .andExpect(jsonPath("$[0].firstName").value("Jan"))
                 .andExpect(jsonPath("$", hasSize(1)));
         verify(userService, times(1)).getAllUsers();
     }
@@ -166,7 +166,7 @@ public class UserControllerTest {
         mockMvc.perform(get("/api/users/{id}", sampleUserId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.firstName.value").value("Jan"));
+                .andExpect(jsonPath("$.firstName").value("Jan"));
         verify(userService, times(1)).getUserById(sampleUserId);
     }
 

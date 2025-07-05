@@ -1,5 +1,6 @@
 package com.library.userservice.controller;
 
+import com.library.userservice.dto.UserResponseDTO;
 import com.library.userservice.model.User;
 import com.library.userservice.service.UserService;
 import jakarta.validation.Valid;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -20,15 +22,18 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+        List<UserResponseDTO> userDTOs = users.stream()
+                .map(UserResponseDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userDTOs);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable UUID id) {
-        Optional<User> user = userService.getUserById(id);
-        return user.map(ResponseEntity::ok)
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
+        Optional<User> userOptional = userService.getUserById(id);
+        return userOptional.map(user -> ResponseEntity.ok(new UserResponseDTO(user)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

@@ -10,6 +10,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class RestClientServiceImpl implements RestClientService {
     private String userServiceUrl;
 
     @Override
-    public Optional<BookDTO> getBookById(Long bookId) {
+    public Optional<BookDTO> getBookById(UUID bookId) {
         String url = bookServiceUrl + "/" + bookId;
         try {
             ResponseEntity<BookDTO> response = restTemplate.getForEntity(url, BookDTO.class);
@@ -38,10 +39,12 @@ public class RestClientServiceImpl implements RestClientService {
     }
 
     @Override
-    public Optional<UserDTO> getUserById(Long userId) {
+    public Optional<UserDTO> getUserById(UUID userId) {
         String url = userServiceUrl + "/" + userId;
         try {
-            ResponseEntity<UserDTO> response = restTemplate.getForEntity(url, UserDTO.class);
+            ResponseEntity<String> rawResponse = restTemplate.getForEntity(url, String.class); // Get as String first
+            System.out.println("Raw User Service Response for ID " + userId + ": " + rawResponse.getBody()); // Log it
+            ResponseEntity<UserDTO> response = restTemplate.getForEntity(url, UserDTO.class); // Then try with DTO
             return Optional.ofNullable(response.getBody());
         } catch (HttpClientErrorException.NotFound e) {
             return Optional.empty();
@@ -52,7 +55,7 @@ public class RestClientServiceImpl implements RestClientService {
     }
 
     @Override
-    public boolean borrowBookInBookService(Long bookId) {
+    public boolean borrowBookInBookService(UUID bookId) {
         String url = bookServiceUrl + "/" + bookId + "/borrow";
         try {
             restTemplate.put(url, null);
@@ -67,7 +70,7 @@ public class RestClientServiceImpl implements RestClientService {
     }
 
     @Override
-    public boolean returnBookInBookService(Long bookId) {
+    public boolean returnBookInBookService(UUID bookId) {
         String url = bookServiceUrl + "/" + bookId + "/return";
         try {
             restTemplate.put(url, null);

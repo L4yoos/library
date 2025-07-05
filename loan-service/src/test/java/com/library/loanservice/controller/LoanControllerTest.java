@@ -15,8 +15,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -34,10 +36,16 @@ public class LoanControllerTest {
     private ObjectMapper objectMapper;
 
     private Loan sampleLoan;
+    private UUID sampleLoanId;
+    private UUID sampleBookId;
+    private UUID sampleUserId;
 
     @BeforeEach
     void setUp() {
-        sampleLoan = new Loan(1L, 101L, 201L, LocalDate.now(), null, LoanStatus.BORROWED);
+        sampleLoanId = UUID.randomUUID();
+        sampleBookId = UUID.randomUUID();
+        sampleUserId = UUID.randomUUID();
+        sampleLoan = new Loan(sampleLoanId, sampleBookId, sampleUserId, LocalDate.now(), null, LoanStatus.BORROWED);
     }
 
     @Test
@@ -45,123 +53,135 @@ public class LoanControllerTest {
         when(loanService.getAllLoans()).thenReturn(Arrays.asList(sampleLoan));
 
         mockMvc.perform(get("/api/loans")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(sampleLoan.getId()));
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(sampleLoanId.toString()))
+                .andExpect(jsonPath("$[0].bookId").value(sampleBookId.toString()))
+                .andExpect(jsonPath("$[0].userId").value(sampleUserId.toString()));
         verify(loanService, times(1)).getAllLoans();
     }
 
     @Test
-    void getLoanById_shouldReturnLoanWhenFound() throws Exception {
-        when(loanService.getLoanById(1L)).thenReturn(Optional.of(sampleLoan));
+    void getLoanById_shouldReturnLoan() throws Exception {
+        when(loanService.getLoanById(sampleLoanId)).thenReturn(Optional.of(sampleLoan));
 
-        mockMvc.perform(get("/api/loans/{id}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/loans/{id}", sampleLoanId)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.bookId").value(sampleLoan.getBookId()));
-        verify(loanService, times(1)).getLoanById(1L);
+                .andExpect(jsonPath("$.id").value(sampleLoanId.toString()))
+                .andExpect(jsonPath("$.bookId").value(sampleBookId.toString()))
+                .andExpect(jsonPath("$.userId").value(sampleUserId.toString()));
+        verify(loanService, times(1)).getLoanById(sampleLoanId);
     }
 
     @Test
     void getLoanById_shouldReturnNotFoundWhenNotFound() throws Exception {
-        when(loanService.getLoanById(anyLong())).thenReturn(Optional.empty());
+        when(loanService.getLoanById(any(UUID.class))).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/loans/{id}", 99L)
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/loans/{id}", UUID.randomUUID())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
-        verify(loanService, times(1)).getLoanById(99L);
+        verify(loanService, times(1)).getLoanById(any(UUID.class));
     }
 
     @Test
     void getLoansByUserId_shouldReturnListOfLoans() throws Exception {
-        when(loanService.getLoansByUserId(201L)).thenReturn(Arrays.asList(sampleLoan));
+        when(loanService.getLoansByUserId(sampleUserId)).thenReturn(Arrays.asList(sampleLoan));
 
-        mockMvc.perform(get("/api/loans/user/{userId}", 201L)
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/loans/user/{userId}", sampleUserId)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].userId").value(sampleLoan.getUserId()));
-        verify(loanService, times(1)).getLoansByUserId(201L);
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].userId").value(sampleUserId.toString()));
+        verify(loanService, times(1)).getLoansByUserId(sampleUserId);
     }
 
     @Test
     void getLoansByBookId_shouldReturnListOfLoans() throws Exception {
-        when(loanService.getLoansByBookId(101L)).thenReturn(Arrays.asList(sampleLoan));
+        when(loanService.getLoansByBookId(sampleBookId)).thenReturn(Arrays.asList(sampleLoan));
 
-        mockMvc.perform(get("/api/loans/book/{bookId}", 101L)
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/loans/book/{bookId}", sampleBookId)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].bookId").value(sampleLoan.getBookId()));
-        verify(loanService, times(1)).getLoansByBookId(101L);
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].bookId").value(sampleBookId.toString()));
+        verify(loanService, times(1)).getLoansByBookId(sampleBookId);
     }
 
     @Test
-    void borrowBook_shouldCreateLoanAndReturnCreatedStatus() throws Exception {
-        Loan newLoan = new Loan(null, 102L, 202L, LocalDate.now(), null, LoanStatus.BORROWED);
-        when(loanService.borrowBook(anyLong(), anyLong())).thenReturn(newLoan);
+    void borrowBook_shouldReturnCreatedLoan() throws Exception {
+        Loan createdLoan = new Loan(UUID.randomUUID(), sampleBookId, sampleUserId, LocalDate.now(), null, LoanStatus.BORROWED);
+
+        when(loanService.borrowBook(sampleUserId, sampleBookId)).thenReturn(createdLoan);
 
         mockMvc.perform(post("/api/loans/borrow")
-                        .param("userId", "202")
-                        .param("bookId", "102")
+                        .param("userId", sampleUserId.toString())
+                        .param("bookId", sampleBookId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.userId").value(202L))
-                .andExpect(jsonPath("$.bookId").value(102L));
-        verify(loanService, times(1)).borrowBook(202L, 102L);
+                .andExpect(jsonPath("$.userId").value(sampleUserId.toString()))
+                .andExpect(jsonPath("$.bookId").value(sampleBookId.toString()))
+                .andExpect(jsonPath("$.status").value("BORROWED"));
+        verify(loanService, times(1)).borrowBook(sampleUserId, sampleBookId);
     }
 
     @Test
-    void borrowBook_shouldReturnBadRequestWhenIllegalArgumentException() throws Exception {
-        when(loanService.borrowBook(anyLong(), anyLong())).thenThrow(new IllegalArgumentException("Użytkownik nie istnieje."));
+    void borrowBook_shouldReturnBadRequestForInvalidUserOrBook() throws Exception {
+        when(loanService.borrowBook(any(UUID.class), any(UUID.class)))
+                .thenThrow(new IllegalArgumentException("Użytkownik lub książka nie istnieje."));
 
         mockMvc.perform(post("/api/loans/borrow")
-                        .param("userId", "999")
-                        .param("bookId", "101")
+                        .param("userId", sampleUserId.toString())
+                        .param("bookId", sampleBookId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
-        verify(loanService, times(1)).borrowBook(999L, 101L);
+        verify(loanService, times(1)).borrowBook(any(UUID.class), any(UUID.class));
     }
 
     @Test
-    void borrowBook_shouldReturnBadRequestWhenIllegalStateException() throws Exception {
-        when(loanService.borrowBook(anyLong(), anyLong())).thenThrow(new IllegalStateException("Książka niedostępna."));
+    void borrowBook_shouldReturnConflictWhenBookUnavailableOrAlreadyBorrowed() throws Exception {
+        when(loanService.borrowBook(any(UUID.class), any(UUID.class)))
+                .thenThrow(new IllegalStateException("Książka niedostępna lub już wypożyczona."));
 
         mockMvc.perform(post("/api/loans/borrow")
-                        .param("userId", "201")
-                        .param("bookId", "101")
+                        .param("userId", sampleUserId.toString())
+                        .param("bookId", sampleBookId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-        verify(loanService, times(1)).borrowBook(201L, 101L);
+                .andExpect(status().isConflict());
+        verify(loanService, times(1)).borrowBook(any(UUID.class), any(UUID.class));
     }
 
     @Test
     void returnBook_shouldUpdateLoanStatusToReturnedAndReturnOkStatus() throws Exception {
-        Loan returnedLoan = new Loan(1L, 101L, 201L, LocalDate.now(), LocalDate.now(), LoanStatus.RETURNED);
-        when(loanService.returnBook(1L)).thenReturn(returnedLoan);
+        Loan returnedLoan = new Loan(sampleLoanId, sampleBookId, sampleUserId, LocalDate.now(), LocalDate.now(), LoanStatus.RETURNED);
+        when(loanService.returnBook(sampleLoanId)).thenReturn(returnedLoan);
 
-        mockMvc.perform(put("/api/loans/{loanId}/return", 1L)
+        mockMvc.perform(put("/api/loans/{loanId}/return", sampleLoanId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(sampleLoanId.toString()))
                 .andExpect(jsonPath("$.status").value("RETURNED"));
-        verify(loanService, times(1)).returnBook(1L);
+        verify(loanService, times(1)).returnBook(sampleLoanId);
     }
 
     @Test
     void returnBook_shouldReturnNotFoundWhenLoanDoesNotExist() throws Exception {
-        when(loanService.returnBook(anyLong())).thenThrow(new IllegalArgumentException("Wypożyczenie nie istnieje."));
+        when(loanService.returnBook(any(UUID.class))).thenThrow(new IllegalArgumentException("Wypożyczenie nie istnieje."));
 
-        mockMvc.perform(put("/api/loans/{loanId}/return", 99L)
+        mockMvc.perform(put("/api/loans/{loanId}/return", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
-        verify(loanService, times(1)).returnBook(99L);
+        verify(loanService, times(1)).returnBook(any(UUID.class));
     }
 
     @Test
     void returnBook_shouldReturnConflictWhenAlreadyReturned() throws Exception {
-        when(loanService.returnBook(anyLong())).thenThrow(new IllegalStateException("Książka została już zwrócona."));
+        when(loanService.returnBook(any(UUID.class))).thenThrow(new IllegalStateException("Książka została już zwrócona."));
 
-        mockMvc.perform(put("/api/loans/{loanId}/return", 1L)
+        mockMvc.perform(put("/api/loans/{loanId}/return", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict());
-        verify(loanService, times(1)).returnBook(1L);
+        verify(loanService, times(1)).returnBook(any(UUID.class));
     }
 }
