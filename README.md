@@ -3,7 +3,7 @@
 
 <p align="left">
   <a href="https://github.com/l4yoos/library/commits/main">
-    <img src="https://img.shields.io/github/last-commit/l4yoos}/library" alt="Last Commit">
+    <img src="https://img.shields.io/github/last-commit/l4yoos/library" alt="Last Commit">
   </a>
   <a href="https://github.com/l4yoos/library">
     <img src="https://img.shields.io/github/languages/top/l4yoos/library" alt="Top Language">
