@@ -38,6 +38,7 @@
   <li>Mockito</li>
   <li>CI/CD (GitHub Actions)</li>
   <li>Docker</li>
+  <li>Swagger (OpenAPI)</li>
 </ul>
 
 <hr/>
