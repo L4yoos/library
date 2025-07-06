@@ -22,8 +22,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUserById(UUID id) {
-        return userRepository.findById(id);
+    public User getUserById(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Override
@@ -72,7 +73,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
-            throw new UserNotFoundException("User with ID " + id + " does not exist.");
+            throw new UserNotFoundException(id);
         }
         userRepository.deleteById(id);
     }
@@ -80,7 +81,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deactivateUser(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with ID " + id + " does not exist."));
+                .orElseThrow(() -> new UserNotFoundException(id));
         user.setActive(false);
         userRepository.save(user);
     }
@@ -88,7 +89,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void activateUser(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with ID " + id + " does not exist."));
+                .orElseThrow(() -> new UserNotFoundException(id));
         user.setActive(true);
         userRepository.save(user);
     }

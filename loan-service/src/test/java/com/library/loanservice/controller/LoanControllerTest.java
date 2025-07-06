@@ -1,6 +1,10 @@
 package com.library.loanservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.library.loanservice.exception.BookAlreadyBorrowedException;
+import com.library.loanservice.exception.LoanAlreadyReturnedException;
+import com.library.loanservice.exception.LoanNotFoundException;
+import com.library.loanservice.exception.UserNotFoundException;
 import com.library.loanservice.model.Loan;
 import com.library.loanservice.model.LoanStatus;
 import com.library.loanservice.service.LoanService;
@@ -67,7 +71,7 @@ public class LoanControllerTest {
     @Test
     @DisplayName("Should return a loan when found by ID")
     void getLoanById_shouldReturnLoan() throws Exception {
-        when(loanService.getLoanById(sampleLoanId)).thenReturn(Optional.of(sampleLoan));
+        when(loanService.getLoanById(sampleLoanId)).thenReturn(sampleLoan);
 
         mockMvc.perform(get("/api/loans/{id}", sampleLoanId)
                         .accept(MediaType.APPLICATION_JSON))
@@ -81,7 +85,7 @@ public class LoanControllerTest {
     @Test
     @DisplayName("Should return not found when loan is not found by ID")
     void getLoanById_shouldReturnNotFoundWhenNotFound() throws Exception {
-        when(loanService.getLoanById(any(UUID.class))).thenReturn(Optional.empty());
+        when(loanService.getLoanById(any(UUID.class))).thenThrow(new LoanNotFoundException(sampleLoanId, "loan"));
 
         mockMvc.perform(get("/api/loans/{id}", UUID.randomUUID())
                         .accept(MediaType.APPLICATION_JSON))
@@ -137,13 +141,13 @@ public class LoanControllerTest {
     @DisplayName("Should return bad request for invalid user or book when borrowing")
     void borrowBook_shouldReturnBadRequestForInvalidUserOrBook() throws Exception {
         when(loanService.borrowBook(any(UUID.class), any(UUID.class)))
-                .thenThrow(new IllegalArgumentException("User or book does not exist."));
+                .thenThrow(new UserNotFoundException(sampleUserId));
 
         mockMvc.perform(post("/api/loans/borrow")
                         .param("userId", sampleUserId.toString())
                         .param("bookId", sampleBookId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
         verify(loanService, times(1)).borrowBook(any(UUID.class), any(UUID.class));
     }
 
@@ -151,7 +155,7 @@ public class LoanControllerTest {
     @DisplayName("Should return conflict when book is unavailable or already borrowed")
     void borrowBook_shouldReturnConflictWhenBookUnavailableOrAlreadyBorrowed() throws Exception {
         when(loanService.borrowBook(any(UUID.class), any(UUID.class)))
-                .thenThrow(new IllegalStateException("Book unavailable or already borrowed."));
+                .thenThrow(new BookAlreadyBorrowedException(sampleUserId, sampleBookId));
 
         mockMvc.perform(post("/api/loans/borrow")
                         .param("userId", sampleUserId.toString())
@@ -178,7 +182,7 @@ public class LoanControllerTest {
     @Test
     @DisplayName("Should return not found when loan does not exist for returning")
     void returnBook_shouldReturnNotFoundWhenLoanDoesNotExist() throws Exception {
-        when(loanService.returnBook(any(UUID.class))).thenThrow(new IllegalArgumentException("Loan does not exist."));
+        when(loanService.returnBook(any(UUID.class))).thenThrow(new LoanNotFoundException(UUID.randomUUID(), "Loan"));
 
         mockMvc.perform(put("/api/loans/{loanId}/return", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -189,7 +193,7 @@ public class LoanControllerTest {
     @Test
     @DisplayName("Should return conflict when book is already returned")
     void returnBook_shouldReturnConflictWhenAlreadyReturned() throws Exception {
-        when(loanService.returnBook(any(UUID.class))).thenThrow(new IllegalStateException("Book has already been returned."));
+        when(loanService.returnBook(any(UUID.class))).thenThrow(new LoanAlreadyReturnedException(UUID.randomUUID()));
 
         mockMvc.perform(put("/api/loans/{loanId}/return", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON))

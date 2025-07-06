@@ -81,22 +81,23 @@ class UserServiceImplTest {
     void getUserById_shouldReturnUserWhenFound() {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        Optional<User> result = userService.getUserById(userId);
+        User result = userService.getUserById(userId);
 
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(userId);
-        assertThat(result.get().getEmail().getValue()).isEqualTo("john.doe@example.com");
+        assertThat(result.getId()).isEqualTo(userId);
+        assertThat(result.getEmail().getValue()).isEqualTo("john.doe@example.com");
         verify(userRepository, times(1)).findById(userId);
     }
 
     @Test
-    @DisplayName("Should return empty Optional when user by ID is not found")
-    void getUserById_shouldReturnEmptyOptionalWhenNotFound() {
+    @DisplayName("getUserById should throw UserNotFoundException when user not found")
+    void getUserById_shouldThrowUserNotFoundExceptionWhenNotFound() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        Optional<User> result = userService.getUserById(userId);
+        UserNotFoundException thrown = assertThrows(UserNotFoundException.class,
+                () -> userService.getUserById(userId));
 
-        assertThat(result).isEmpty();
+        assertThat(thrown.getMessage()).contains("User with ID " + userId + " not found.");
+
         verify(userRepository, times(1)).findById(userId);
     }
 
@@ -296,7 +297,7 @@ class UserServiceImplTest {
             userService.deleteUser(userId);
         });
 
-        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " does not exist.");
+        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " not found.");
         verify(userRepository, times(1)).existsById(userId);
         verify(userRepository, never()).deleteById(any(UUID.class));
     }
@@ -325,7 +326,7 @@ class UserServiceImplTest {
             userService.deactivateUser(userId);
         });
 
-        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " does not exist.");
+        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " not found.");
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, never()).save(any(User.class));
     }
@@ -354,7 +355,7 @@ class UserServiceImplTest {
             userService.activateUser(userId);
         });
 
-        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " does not exist.");
+        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " not found.");
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, never()).save(any(User.class));
     }

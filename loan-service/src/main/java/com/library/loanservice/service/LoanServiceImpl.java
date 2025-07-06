@@ -1,6 +1,7 @@
 package com.library.loanservice.service;
 
 import com.library.loanservice.dto.UserDTO;
+import com.library.loanservice.exception.*;
 import com.library.loanservice.model.Loan;
 import com.library.loanservice.model.LoanStatus;
 import com.library.loanservice.producer.LoanEventProducer;
@@ -30,36 +31,47 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public Optional<Loan> getLoanById(UUID id) {
-        return loanRepository.findById(id);
+    public Loan getLoanById(UUID id) {
+        return loanRepository.findById(id)
+                .orElseThrow(() -> new LoanNotFoundException(id, "loan"));
     }
 
     @Override
     public List<Loan> getLoansByUserId(UUID userId) {
-        return loanRepository.findByUserId(userId);
+        List<Loan> loans = loanRepository.findByUserId(userId);
+        if (loans.isEmpty()) {
+            throw new LoanNotFoundException(userId, "user");
+        }
+        return loans;
     }
 
     @Override
     public List<Loan> getLoansByBookId(UUID bookId) {
-        return loanRepository.findByBookId(bookId);
+        List<Loan> loans = loanRepository.findByBookId(bookId);
+        if (loans.isEmpty()) {
+            throw new LoanNotFoundException(bookId, "book");
+        }
+        return loans;
     }
 
     @Override
     public Loan borrowBook(UUID userId, UUID bookId) {
-        Optional<UserDTO> userOpt = restClientService.getUserById(userId).block();
-        if (userOpt.isEmpty()) {
-            throw new IllegalArgumentException("User with ID " + userId + " does not exist.");
-        }
-
-        Boolean result = restClientService.borrowBookInBookService(bookId).block();
-        if (Boolean.FALSE.equals(result)) {
-            throw new IllegalStateException("You can't borrow a book with an ID" + bookId + ". Check it's availability.");
+        UserDTO user = restClientService.getUserById(userId).block();
+        if (user == null) {
+            throw new UserNotFoundException(userId);
         }
 
         Optional<Loan> activeLoan = loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED);
         if (activeLoan.isPresent()) {
-            restClientService.returnBookInBookService(bookId);
-            throw new IllegalStateException("User with ID " + userId + " already has a borrowed book on ID " + bookId + ".");
+            throw new BookAlreadyBorrowedException(userId, bookId);
+        }
+
+        Boolean bookServiceResult = restClientService.borrowBookInBookService(bookId).block();
+        if (Boolean.FALSE.equals(bookServiceResult)) {
+            throw new BookNotAvailableException(bookId);
+        }
+        else if (bookServiceResult == null) {
+            throw new ServiceCommunicationException("Book Service", "Unexpected response during book borrowing.");
         }
 
         Loan newLoan = new Loan();
@@ -83,21 +95,19 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public Loan returnBook(UUID loanId) {
-        Optional<Loan> optionalLoan = loanRepository.findById(loanId);
-
-        if (optionalLoan.isEmpty()) {
-            throw new IllegalArgumentException("Loan with ID " + loanId + " does not exist.");
-        }
-
-        Loan loan = optionalLoan.get();
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() -> new LoanNotFoundException(loanId, "loan"));
 
         if (loan.getStatus() == LoanStatus.RETURNED) {
-            throw new IllegalStateException("Loan book on ID " + loanId + " has already been returned.");
+            throw new LoanAlreadyReturnedException(loanId);
         }
 
-        Boolean result = restClientService.returnBookInBookService(loan.getBookId()).block();
-        if (Boolean.FALSE.equals(result)) {
-            throw new IllegalStateException("An error occurred while trying to return a book with ID " + loan.getBookId() + " in Book Service.");
+        Boolean bookServiceResult = restClientService.returnBookInBookService(loan.getBookId()).block();
+        if (Boolean.FALSE.equals(bookServiceResult)) {
+            throw new ServiceCommunicationException("Book Service", "Failed to confirm book return in Book Service for ID: " + loan.getBookId());
+        }
+        else if (bookServiceResult == null) {
+            throw new ServiceCommunicationException("Book Service", "Unexpected response during book return.");
         }
 
         loan.setReturnDate(LocalDate.now());

@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import java.util.UUID;
 
 @ResponseStatus(HttpStatus.CONFLICT)
-public class BookNotAvailableException extends RuntimeException {
-    public BookNotAvailableException(UUID bookId) {
-        super("Book with ID " + bookId + " is currently not available for borrowing.");
+public class LoanAlreadyReturnedException extends RuntimeException {
+    public LoanAlreadyReturnedException(UUID loanId) {
+        super("Loan with ID " + loanId + " has already been returned.");
     }
 }
