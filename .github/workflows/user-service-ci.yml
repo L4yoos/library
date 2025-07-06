@@ -39,6 +39,6 @@ jobs:
         with:
           context: ./user-service
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/user-service:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/library-user-service:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
