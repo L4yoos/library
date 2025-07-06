@@ -1,0 +1,38 @@
+name: User Service CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'user-service/**'
+      - '.github/workflows/user-service-ci.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'user-service/**'
+      - '.github/workflows/user-service-ci.yml'
+
+jobs:
+  build-and-push-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }} # Nazwa użytkownika z GitHub Secrets
+          password: ${{ secrets.DOCKER_PASSWORD }} # Hasło/Token z GitHub Secrets
+
+      - name: Build and push Docker image for User Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./user-service
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/user-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
