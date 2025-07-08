@@ -109,7 +109,7 @@ services:
     environment:
       user-service.url: http://user-service:8881/api/users
       book-service.url: http://book-service:8880/api/books
-      resend.api-key: RESEND_API
+      resend.api-key: ${RESEND_API_KEY}
       resend.sender-email: onboarding@resend.dev
     depends_on:
       broker:

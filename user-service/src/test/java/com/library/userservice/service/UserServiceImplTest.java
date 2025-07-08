@@ -170,16 +170,14 @@ class UserServiceImplTest {
         when(userRepository.findByPhoneNumberValue("999888777")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(existingUser);
 
-        Optional<User> result = userService.updateUser(userId, updatedDetails);
+        User result = userService.updateUser(userId, updatedDetails);
 
-        assertThat(result).isPresent();
-        User savedUser = result.get();
-        assertThat(savedUser.getFirstName().getValue()).isEqualTo("Updated");
-        assertThat(savedUser.getLastName().getValue()).isEqualTo("Name");
-        assertThat(savedUser.getEmail().getValue()).isEqualTo("updated.email@example.com");
-        assertThat(savedUser.getPhoneNumber().getValue()).isEqualTo("999888777");
-        assertThat(savedUser.getAddress()).isEqualTo("Updated Address");
-        assertThat(savedUser.getRegistrationDate()).isEqualTo(existingUser.getRegistrationDate());
+        assertThat(result.getFirstName().getValue()).isEqualTo("Updated");
+        assertThat(result.getLastName().getValue()).isEqualTo("Name");
+        assertThat(result.getEmail().getValue()).isEqualTo("updated.email@example.com");
+        assertThat(result.getPhoneNumber().getValue()).isEqualTo("999888777");
+        assertThat(result.getAddress()).isEqualTo("Updated Address");
+        assertThat(result.getRegistrationDate()).isEqualTo(existingUser.getRegistrationDate());
 
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, times(1)).findByEmailValue("updated.email@example.com");
@@ -200,13 +198,11 @@ class UserServiceImplTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(User.class))).thenReturn(existingUser);
 
-        Optional<User> result = userService.updateUser(userId, updatedDetails);
+        User result = userService.updateUser(userId, updatedDetails);
 
-        assertThat(result).isPresent();
-        User savedUser = result.get();
-        assertThat(savedUser.getFirstName().getValue()).isEqualTo("Updated");
-        assertThat(savedUser.getEmail().getValue()).isEqualTo("john.doe@example.com");
-        assertThat(savedUser.getPhoneNumber().getValue()).isEqualTo("123456789");
+        assertThat(result.getFirstName().getValue()).isEqualTo("Updated");
+        assertThat(result.getEmail().getValue()).isEqualTo("john.doe@example.com");
+        assertThat(result.getPhoneNumber().getValue()).isEqualTo("123456789");
 
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, never()).findByEmailValue(anyString());
@@ -221,9 +217,8 @@ class UserServiceImplTest {
         User userDetails = new User("Any", "User", "any.email@example.com", "anyphone", "Any Address");
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        Optional<User> result = userService.updateUser(userId, userDetails);
+        User result = userService.updateUser(userId, userDetails);
 
-        assertThat(result).isEmpty();
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, never()).save(any(User.class));
     }

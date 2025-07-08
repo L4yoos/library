@@ -42,3 +42,5 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/library-notification-service:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            RESEND_API_KEY_ARG=${{ secrets.RESEND_API_KEY }}

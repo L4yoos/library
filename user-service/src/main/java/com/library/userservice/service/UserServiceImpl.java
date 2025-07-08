@@ -41,33 +41,33 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> updateUser(UUID id, User userDetails) {
-        return userRepository.findById(id).map(existingUser -> {
+    public User updateUser(UUID id, User userDetails) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
 
-            if (userDetails.getEmail() != null &&
-                    !userDetails.getEmail().getValue().equals(existingUser.getEmail().getValue())) {
-                Optional<User> userWithNewEmail = userRepository.findByEmailValue(userDetails.getEmail().getValue());
-                if (userWithNewEmail.isPresent() && !userWithNewEmail.get().getId().equals(id)) {
-                    throw new IllegalArgumentException("The new email address is already taken.");
-                }
+        if (userDetails.getEmail() != null &&
+                !userDetails.getEmail().getValue().equals(existingUser.getEmail().getValue())) {
+            Optional<User> userWithNewEmail = userRepository.findByEmailValue(userDetails.getEmail().getValue());
+            if (userWithNewEmail.isPresent() && !userWithNewEmail.get().getId().equals(id)) {
+                throw new IllegalArgumentException("The new email address is already taken.");
             }
+        }
 
-            if (userDetails.getPhoneNumber() != null &&
-                    !userDetails.getPhoneNumber().getValue().equals(existingUser.getPhoneNumber().getValue())) {
-                Optional<User> userWithNewPhone = userRepository.findByPhoneNumberValue(userDetails.getPhoneNumber().getValue());
-                if (userWithNewPhone.isPresent() && !userWithNewPhone.get().getId().equals(id)) {
-                    throw new IllegalArgumentException("The new phone number is already taken.");
-                }
+        if (userDetails.getPhoneNumber() != null &&
+                !userDetails.getPhoneNumber().getValue().equals(existingUser.getPhoneNumber().getValue())) {
+            Optional<User> userWithNewPhone = userRepository.findByPhoneNumberValue(userDetails.getPhoneNumber().getValue());
+            if (userWithNewPhone.isPresent() && !userWithNewPhone.get().getId().equals(id)) {
+                throw new IllegalArgumentException("The new phone number is already taken.");
             }
+        }
 
-            existingUser.setFirstName(userDetails.getFirstName());
-            existingUser.setLastName(userDetails.getLastName());
-            existingUser.setEmail(userDetails.getEmail());
-            existingUser.setPhoneNumber(userDetails.getPhoneNumber());
-            existingUser.setAddress(userDetails.getAddress());
+        existingUser.setFirstName(userDetails.getFirstName());
+        existingUser.setLastName(userDetails.getLastName());
+        existingUser.setEmail(userDetails.getEmail());
+        existingUser.setPhoneNumber(userDetails.getPhoneNumber());
+        existingUser.setAddress(userDetails.getAddress());
 
-            return userRepository.save(existingUser);
-        });
+        return userRepository.save(existingUser);
     }
 
     @Override

@@ -6,6 +6,9 @@ COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
 
+ARG RESEND_API_KEY_ARG
+ENV RESEND_API_KEY=${RESEND_API_KEY_ARG}
+
 RUN ./mvnw clean package -DskipTests
 
 FROM openjdk:17-jdk-slim

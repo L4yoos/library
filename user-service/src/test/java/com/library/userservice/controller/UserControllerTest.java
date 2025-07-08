@@ -133,7 +133,7 @@ class UserControllerTest {
         User updatedDetailsRequest = new User("Updated", "Name", "john.doe@example.com", "123456789", "123 Main St Updated");
 
         User updatedUserResult = new User(userId, new FirstName("Updated"), new LastName("Name"),  new EmailAddress("john.doe@example.com"), new PhoneNumber("123456789"), "123 Main St Updated", user.getRegistrationDate(), true);
-        when(userService.updateUser(eq(userId), any(User.class))).thenReturn(Optional.of(updatedUserResult));
+        when(userService.updateUser(eq(userId), any(User.class))).thenReturn(updatedUserResult);
 
         mockMvc.perform(put("/api/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -151,7 +151,7 @@ class UserControllerTest {
     void updateUser_shouldReturnNotFoundWhenUserNotFound() throws Exception {
         User updatedDetailsRequest = new User("Updated", "Name", "john.doe@example.com", "123456789", "123 Main St Updated");
 
-        when(userService.updateUser(eq(userId), any(User.class))).thenReturn(Optional.empty());
+        when(userService.updateUser(eq(userId), any(User.class))).thenReturn(null);
 
         mockMvc.perform(put("/api/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)

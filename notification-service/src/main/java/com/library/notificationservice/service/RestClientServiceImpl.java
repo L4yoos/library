@@ -1,4 +1,4 @@
-package com.library.notificationservice.service.impl;
+package com.library.notificationservice.service;
 
 import com.library.notificationservice.dto.BookDto;
 import com.library.notificationservice.dto.UserDto;

@@ -53,10 +53,10 @@ public class UserController {
                         schema = @Schema(implementation = UserResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
                 content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = ErrorResponse.class)))
+                        schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
                 content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = ErrorResponse.class)))
+                        schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(
             @PathVariable UUID id) {
@@ -70,10 +70,10 @@ public class UserController {
                     schema = @Schema(implementation = UserResponseDTO.class)))
     @ApiResponse(responseCode = "400", description = "Invalid user data provided",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody User user) {
         User createdUser = userService.createUser(user);
@@ -87,18 +87,17 @@ public class UserController {
                     schema = @Schema(implementation = UserResponseDTO.class)))
     @ApiResponse(responseCode = "400", description = "Invalid user data provided (e.g., validation errors)",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody User userDetails) {
-        Optional<User> updatedUser = userService.updateUser(id, userDetails);
-        return updatedUser.map(user -> ResponseEntity.ok(new UserResponseDTO(user)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        User updatedUser = userService.updateUser(id, userDetails);
+        return ResponseEntity.status(HttpStatus.OK).body(new UserResponseDTO(updatedUser));
     }
 
     @Operation(summary = "Delete a user", description = "Deletes a user from the system by their unique ID.")
@@ -108,10 +107,10 @@ public class UserController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDTO> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
@@ -132,10 +131,10 @@ public class UserController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/deactivate")
     public ResponseEntity<ResponseDTO> deactivateUser(@PathVariable UUID id) {
         userService.deactivateUser(id);
@@ -156,10 +155,10 @@ public class UserController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class)))
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/activate")
     public ResponseEntity<ResponseDTO> activateUser(@PathVariable UUID id) {
         userService.activateUser(id);
