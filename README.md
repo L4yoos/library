@@ -39,6 +39,7 @@
   <li>CI/CD (GitHub Actions)</li>
   <li>Docker</li>
   <li>Swagger (OpenAPI)</li>
+  <li>Kubernetes</li>
 </ul>
 
 <hr/>
@@ -77,17 +78,12 @@
 <hr/>
 
 <h2 align="left" id="installation">🛠️ Installation</h2>
-<p align="left">To install this project, follow these steps:</p>
-<ul align="left">
-  <li>Clone the repository using Git.</li>
-  <li>Run `mvn clean package` to build the project.</li>
-  <li>Run `mvn spring-boot:run` to start the application.</li>
-</ul>
+<p align="left">To install and run each service, follow the instructions in the respective service's README.</p>
 
 <hr/>
 
 <h2 align="left" id="usage">🚀 Usage</h2>
-<p align="left">Each service has its own set of APIs for performing various operations. Refer to the individual service documentation for usage details.</p>
+<p align="left">Each service has its own usage instructions, which can be found in the respective service's README.</p>
 
 <hr/>
 

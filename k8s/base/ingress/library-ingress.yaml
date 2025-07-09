@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: library-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: library.local
+      http:
+        paths:
+          - path: /api/books
+            pathType: Prefix
+            backend:
+              service:
+                name: book-service
+                port:
+                  number: 8880
+          - path: /api/users
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 8881
+          - path: /api/loans
+            pathType: Prefix
+            backend:
+              service:
+                name: loan-service
+                port:
+                  number: 8882
+          - path: /api/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 8883
