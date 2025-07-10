@@ -1,4 +1,4 @@
-package com.library.loanservice.event;
+package com.library.notificationservice.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,11 +10,12 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoanReturnedEvent {
+public class LoanReminderEvent {
     private UUID loanId;
-    private UUID bookId;
     private UUID userId;
+    private UUID bookId;
+    private String bookTitle;
     private LocalDate loanDate;
     private LocalDate dueDate;
-    private LocalDate returnDate;
+    private String userEmail;
 }

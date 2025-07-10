@@ -15,4 +15,5 @@ public class LoanCreatedEvent {
     private UUID bookId;
     private UUID userId;
     private LocalDate loanDate;
+    private LocalDate dueDate;
 }

@@ -50,7 +50,7 @@ public class LoanControllerTest {
         sampleLoanId = UUID.randomUUID();
         sampleBookId = UUID.randomUUID();
         sampleUserId = UUID.randomUUID();
-        sampleLoan = new Loan(sampleLoanId, sampleBookId, sampleUserId, LocalDate.now(), null, LoanStatus.BORROWED);
+        sampleLoan = new Loan(sampleLoanId, sampleBookId, sampleUserId, LocalDate.now(), LocalDate.now().plusDays(14), null, LoanStatus.BORROWED);
     }
 
     @Test
@@ -122,7 +122,7 @@ public class LoanControllerTest {
     @Test
     @DisplayName("Should create and return a borrowed loan successfully")
     void borrowBook_shouldReturnCreatedLoan() throws Exception {
-        Loan createdLoan = new Loan(UUID.randomUUID(), sampleBookId, sampleUserId, LocalDate.now(), null, LoanStatus.BORROWED);
+        Loan createdLoan = new Loan(UUID.randomUUID(), sampleBookId, sampleUserId, LocalDate.now(), LocalDate.now().plusDays(14), null, LoanStatus.BORROWED);
 
         when(loanService.borrowBook(sampleUserId, sampleBookId)).thenReturn(createdLoan);
 
@@ -168,7 +168,7 @@ public class LoanControllerTest {
     @Test
     @DisplayName("Should update loan status to returned and return OK status")
     void returnBook_shouldUpdateLoanStatusToReturnedAndReturnOkStatus() throws Exception {
-        Loan returnedLoan = new Loan(sampleLoanId, sampleBookId, sampleUserId, LocalDate.now(), LocalDate.now(), LoanStatus.RETURNED);
+        Loan returnedLoan = new Loan(sampleLoanId, sampleBookId, sampleUserId, LocalDate.now(), LocalDate.now().plusDays(14), LocalDate.now(), LoanStatus.RETURNED);
         when(loanService.returnBook(sampleLoanId)).thenReturn(returnedLoan);
 
         mockMvc.perform(put("/api/loans/{loanId}/return", sampleLoanId)

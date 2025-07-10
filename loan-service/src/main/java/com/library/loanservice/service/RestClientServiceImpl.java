@@ -1,5 +1,6 @@
 package com.library.loanservice.service;
 
+import com.library.loanservice.dto.BookDTO;
 import com.library.loanservice.dto.UserDTO;
 import com.library.loanservice.exception.ServiceCommunicationException;
 import com.library.loanservice.exception.UserNotFoundException;
@@ -24,6 +25,23 @@ public class RestClientServiceImpl implements RestClientService {
 
     @Value("${user-service.url}")
     private String userServiceUrl;
+
+    @Override
+    public Mono<BookDTO> getBookById(UUID bookId) {
+        String url = bookServiceUrl + "/" + bookId;
+        return webClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(BookDTO.class)
+                .onErrorResume(WebClientResponseException.class, e -> {
+                    if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                        return Mono.error(new UserNotFoundException(bookId));
+                    } else {
+                        return Mono.error(new ServiceCommunicationException("Book Service",
+                                "Received error from book service: " + e.getStatusCode()));
+                    }
+                });
+    }
 
     @Override
     public Mono<UserDTO> getUserById(UUID userId) {

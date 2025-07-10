@@ -29,6 +29,9 @@ public class Loan {
     @NotNull(message = "Loan date is required")
     private LocalDate loanDate;
 
+    @NotNull(message = "Due date is required")
+    private LocalDate dueDate;
+
     private LocalDate returnDate;
 
     @NotNull(message = "Loan status is required")

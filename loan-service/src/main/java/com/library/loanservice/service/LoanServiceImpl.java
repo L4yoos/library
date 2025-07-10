@@ -25,6 +25,8 @@ public class LoanServiceImpl implements LoanService {
     private final RestClientService restClientService;
     private final LoanEventProducer loanEventProducer;
 
+    private static final int DEFAULT_LOAN_PERIOD_DAYS = 14;
+
     @Override
     public List<Loan> getAllLoans() {
         return loanRepository.findAll();
@@ -78,6 +80,7 @@ public class LoanServiceImpl implements LoanService {
         newLoan.setUserId(userId);
         newLoan.setBookId(bookId);
         newLoan.setLoanDate(LocalDate.now());
+        newLoan.setDueDate(LocalDate.now().plusDays(DEFAULT_LOAN_PERIOD_DAYS));
         newLoan.setStatus(LoanStatus.BORROWED);
 
         Loan savedLoan = loanRepository.save(newLoan);
@@ -86,7 +89,8 @@ public class LoanServiceImpl implements LoanService {
                 savedLoan.getId(),
                 savedLoan.getBookId(),
                 savedLoan.getUserId(),
-                savedLoan.getLoanDate()
+                savedLoan.getLoanDate(),
+                savedLoan.getDueDate()
         );
         loanEventProducer.publishLoanCreatedEvent(event);
 
@@ -120,6 +124,7 @@ public class LoanServiceImpl implements LoanService {
                 returnedLoan.getBookId(),
                 returnedLoan.getUserId(),
                 returnedLoan.getLoanDate(),
+                returnedLoan.getDueDate(),
                 returnedLoan.getReturnDate()
         );
         loanEventProducer.publishLoanReturnedEvent(event);

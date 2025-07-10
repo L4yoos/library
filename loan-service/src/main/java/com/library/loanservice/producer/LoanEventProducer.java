@@ -1,6 +1,8 @@
 package com.library.loanservice.producer;
 
 import com.library.loanservice.event.LoanCreatedEvent;
+import com.library.loanservice.event.LoanOverdueEvent;
+import com.library.loanservice.event.LoanReminderEvent;
 import com.library.loanservice.event.LoanReturnedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -19,6 +21,13 @@ public class LoanEventProducer {
     }
 
     public void publishLoanReturnedEvent(LoanReturnedEvent event) {
+        kafkaTemplate.send(TOPIC_LOAN_EVENTS, event.getLoanId().toString(), event);
+    }
+    public void publishLoanReminderEvent(LoanReminderEvent event) {
+        kafkaTemplate.send(TOPIC_LOAN_EVENTS, event.getLoanId().toString(), event);
+    }
+
+    public void publishLoanOverdueEvent(LoanOverdueEvent event) {
         kafkaTemplate.send(TOPIC_LOAN_EVENTS, event.getLoanId().toString(), event);
     }
 }

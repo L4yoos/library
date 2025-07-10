@@ -38,7 +38,9 @@ public class KafkaConsumerConfig {
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.library.loanservice.event, com.library.notificationservice.event");
         props.put(JsonDeserializer.TYPE_MAPPINGS,
                 "com.library.loanservice.event.LoanCreatedEvent:com.library.notificationservice.event.LoanCreatedEvent," +
-                "com.library.loanservice.event.LoanReturnedEvent:com.library.notificationservice.event.LoanReturnedEvent");
+                "com.library.loanservice.event.LoanReturnedEvent:com.library.notificationservice.event.LoanReturnedEvent," +
+                "com.library.loanservice.event.LoanReminderEvent:com.library.notificationservice.event.LoanReminderEvent," +
+                "com.library.loanservice.event.LoanOverdueEvent:com.library.notificationservice.event.LoanOverdueEvent");
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "java.lang.Object");
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, true);
 
