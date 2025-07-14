@@ -3,7 +3,7 @@ LABEL authors="l4yoos"
 WORKDIR /app
 COPY . /app/
 RUN chmod +x ./mvnw
-RUN cd common && ./mvnw clean install -B -Dmaven.test.skip=true
+RUN cd common && ./mvnw clean install -B -Dmaven.test.skip=true -X
 
 FROM openjdk:17-jdk-slim AS notification-service-builder
 LABEL authors="l4yoos"
