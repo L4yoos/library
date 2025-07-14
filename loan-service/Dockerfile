@@ -3,7 +3,7 @@ LABEL authors="l4ayoos"
 WORKDIR /app
 COPY . /app/
 RUN chmod +x ./mvnw
-RUN cd common && ./mvnw clean install -B -Dmaven.test.skip=true
+RUN ./mvnw clean install -pl common -B -Dmaven.test.skip=true -e -X
 
 FROM openjdk:17-jdk-slim AS loan-service-builder
 LABEL authors="l4ayoos"
