@@ -38,6 +38,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: notification-service/Dockerfile
           target: notification-service-run
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/library-notification-service:latest
