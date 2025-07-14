@@ -81,7 +81,7 @@ services:
   loan-service:
     build:
       context: .
-      dockerfile: loan-service/Dockerfile
+      dockerfile: ./loan-service/Dockerfile
     container_name: library_loan_service
     ports:
       - "8882:8882"
@@ -102,7 +102,7 @@ services:
   notification-service:
     build:
       context: .
-      dockerfile: notification-service/Dockerfile
+      dockerfile: ./notification-service/Dockerfile
     container_name: library_notification_service
     ports:
       - "8883:8883"
