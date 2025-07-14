@@ -2,6 +2,7 @@ FROM openjdk:17-jdk-slim AS common-builder
 LABEL authors="l4ayoos"
 WORKDIR /app
 COPY . /app/
+RUN chmod +x ./mvnw
 RUN cd common && ./mvnw clean install -B -Dmaven.test.skip=true
 
 FROM openjdk:17-jdk-slim AS loan-service-builder
