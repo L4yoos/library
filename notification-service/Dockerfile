@@ -1,18 +1,19 @@
-FROM openjdk:17-jdk-slim AS build
+FROM openjdk:17-jdk-slim AS common-builder
 LABEL authors="l4yoos"
 WORKDIR /app
-COPY mvnw .
-COPY .mvn .mvn
-COPY pom.xml .
-COPY src src
+COPY . /app/
+RUN cd common && ./mvnw clean install -B -Dmaven.test.skip=true
 
-ARG RESEND_API_KEY_ARG
-ENV RESEND_API_KEY=${RESEND_API_KEY_ARG}
-
-RUN ./mvnw clean package -DskipTests
-
-FROM openjdk:17-jdk-slim
+FROM openjdk:17-jdk-slim AS notification-service-builder
+LABEL authors="l4yoos"
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8881
+COPY --from=common-builder /root/.m2 /root/.m2
+COPY --from=common-builder /app /app
+RUN cd notification-service && ./mvnw clean package -B -Dmaven.test.skip=true
+
+FROM openjdk:17-jdk-slim AS notification-service-run
+LABEL authors="l4yoos"
+WORKDIR /app
+COPY --from=notification-service-builder /app/notification-service/target/*.jar app.jar
+EXPOSE 8080
 ENTRYPOINT ["java","-jar","app.jar"]

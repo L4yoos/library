@@ -1,7 +1,7 @@
 package com.library.loanservice.service;
 
-import com.library.loanservice.dto.BookDTO;
-import com.library.loanservice.dto.UserDTO;
+import com.library.common.dto.BookDTO;
+import com.library.common.dto.UserDTO;
 import com.library.loanservice.exception.ServiceCommunicationException;
 import com.library.loanservice.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;

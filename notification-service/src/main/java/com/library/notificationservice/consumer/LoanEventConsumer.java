@@ -1,9 +1,10 @@
 package com.library.notificationservice.consumer;
 
-import com.library.notificationservice.event.LoanCreatedEvent;
-import com.library.notificationservice.event.LoanOverdueEvent;
-import com.library.notificationservice.event.LoanReminderEvent;
-import com.library.notificationservice.event.LoanReturnedEvent;
+
+import com.library.common.event.LoanCreatedEvent;
+import com.library.common.event.LoanOverdueEvent;
+import com.library.common.event.LoanReminderEvent;
+import com.library.common.event.LoanReturnedEvent;
 import com.library.notificationservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

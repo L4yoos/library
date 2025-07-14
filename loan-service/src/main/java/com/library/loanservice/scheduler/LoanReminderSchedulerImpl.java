@@ -1,9 +1,9 @@
 package com.library.loanservice.scheduler;
 
-import com.library.loanservice.dto.BookDTO;
-import com.library.loanservice.dto.UserDTO;
-import com.library.loanservice.event.LoanOverdueEvent;
-import com.library.loanservice.event.LoanReminderEvent;
+import com.library.common.dto.BookDTO;
+import com.library.common.dto.UserDTO;
+import com.library.common.event.LoanOverdueEvent;
+import com.library.common.event.LoanReminderEvent;
 import com.library.loanservice.model.Loan;
 import com.library.loanservice.model.LoanStatus;
 import com.library.loanservice.producer.LoanEventProducer;
@@ -46,12 +46,10 @@ public class LoanReminderSchedulerImpl implements LoanReminderScheduler {
                 if (user != null && book != null) {
                     LoanReminderEvent event = new LoanReminderEvent(
                             loan.getId(),
-                            loan.getUserId(),
-                            loan.getBookId(),
-                            book.getTitle(),
+                            user,
+                            book,
                             loan.getLoanDate(),
-                            loan.getDueDate(),
-                            user.getEmail()
+                            loan.getDueDate()
                     );
                     loanEventProducer.publishLoanReminderEvent(event);
                 }
@@ -84,12 +82,10 @@ public class LoanReminderSchedulerImpl implements LoanReminderScheduler {
                 if (user != null && book != null) {
                     LoanOverdueEvent event = new LoanOverdueEvent(
                             loan.getId(),
-                            loan.getUserId(),
-                            loan.getBookId(),
-                            book.getTitle(),
+                            user,
+                            book,
                             loan.getLoanDate(),
-                            loan.getDueDate(),
-                            user.getEmail()
+                            loan.getDueDate()
                     );
                     loanEventProducer.publishLoanOverdueEvent(event);
                 }

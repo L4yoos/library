@@ -1,8 +1,8 @@
 package com.library.loanservice.service;
 
-import com.library.loanservice.dto.UserDTO;
-import com.library.loanservice.event.LoanCreatedEvent;
-import com.library.loanservice.event.LoanReturnedEvent;
+import com.library.common.dto.UserDTO;
+import com.library.common.event.LoanCreatedEvent;
+import com.library.common.event.LoanReturnedEvent;
 import com.library.loanservice.exception.*;
 import com.library.loanservice.model.Loan;
 import com.library.loanservice.model.LoanStatus;

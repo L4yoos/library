@@ -1,7 +1,10 @@
-package com.library.loanservice.event;
+package com.library.common.event;
 
 import java.time.LocalDate;
 import java.util.UUID;
+
+import com.library.common.dto.BookDTO;
+import com.library.common.dto.UserDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,10 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoanOverdueEvent {
     private UUID loanId;
-    private UUID userId;
-    private UUID bookId;
-    private String bookTitle;
+    private UserDTO user;
+    private BookDTO book;
     private LocalDate loanDate;
     private LocalDate dueDate;
-    private String userEmail;
 }

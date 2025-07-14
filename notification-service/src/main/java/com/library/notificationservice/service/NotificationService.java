@@ -1,11 +1,11 @@
 package com.library.notificationservice.service;
 
-import com.library.notificationservice.dto.BookDto;
-import com.library.notificationservice.dto.UserDto;
-import com.library.notificationservice.event.LoanCreatedEvent;
-import com.library.notificationservice.event.LoanOverdueEvent;
-import com.library.notificationservice.event.LoanReminderEvent;
-import com.library.notificationservice.event.LoanReturnedEvent;
+import com.library.common.dto.BookDTO;
+import com.library.common.dto.UserDTO;
+import com.library.common.event.LoanCreatedEvent;
+import com.library.common.event.LoanOverdueEvent;
+import com.library.common.event.LoanReminderEvent;
+import com.library.common.event.LoanReturnedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,77 +16,52 @@ import java.time.format.DateTimeFormatter;
 public class NotificationService {
 
     private final EmailService emailService;
-    private final RestClientService restClientService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public void handleLoanCreatedNotification(LoanCreatedEvent event) {
-        restClientService.getUserById(event.getUserId())
-                .zipWith(restClientService.getBookById(event.getBookId()))
-                .subscribe(tuple -> {
-                    UserDto user = tuple.getT1();
-                    BookDto book = tuple.getT2();
+        UserDTO user = event.getUser();
+        BookDTO book = event.getBook();
 
-                    String subject = "Potwierdzenie wypożyczenia książki: " + book.getTitle();
-                    String htmlContent = formatLoanCreatedContent(user, book, event);
+        String subject = "Potwierdzenie wypożyczenia książki: " + book.getTitle();
+        String htmlContent = formatLoanCreatedContent(user, book, event);
 
-                    System.out.println("Przygotowano email do wysłania: " + user.getEmail());
-                    emailService.sendEmail(user.getEmail(), subject, htmlContent);
-                }, error -> {
-                    System.err.println("Błąd podczas pobierania danych dla wypożyczenia o ID " + event.getLoanId() + ": " + error.getMessage());
-                });
+        System.out.println("Przygotowano email do wysłania: " + user.getEmail());
+        emailService.sendEmail(user.getEmail(), subject, htmlContent);
     }
 
     public void handleLoanReturnedNotification(LoanReturnedEvent event) {
-        restClientService.getUserById(event.getUserId())
-                .zipWith(restClientService.getBookById(event.getBookId()))
-                .subscribe(tuple -> {
-                    UserDto user = tuple.getT1();
-                    BookDto book = tuple.getT2();
+        UserDTO user = event.getUser();
+        BookDTO book = event.getBook();
 
-                    String subject = "Potwierdzenie zwrotu książki: " + book.getTitle();
-                    String htmlContent = formatLoanReturnedContent(user, book, event);
+        String subject = "Potwierdzenie zwrotu książki: " + book.getTitle();
+        String htmlContent = formatLoanReturnedContent(user, book, event);
 
-                    System.out.println("Przygotowano email do wysłania: " + user.getEmail());
-                    emailService.sendEmail(user.getEmail(), subject, htmlContent);
-                }, error -> {
-                    System.err.println("Błąd podczas pobierania danych dla zwrotu o ID " + event.getLoanId() + ": " + error.getMessage());
-                });
+        System.out.println("Przygotowano email do wysłania: " + user.getEmail());
+        emailService.sendEmail(user.getEmail(), subject, htmlContent);
     }
 
     public void handleLoanReminderNotification(LoanReminderEvent event) {
-        restClientService.getUserById(event.getUserId())
-                .zipWith(restClientService.getBookById(event.getBookId()))
-                .subscribe(tuple -> {
-                    UserDto user = tuple.getT1();
-                    BookDto book = tuple.getT2();
+        UserDTO user = event.getUser();
+        BookDTO book = event.getBook();
 
-                    String subject = "Przypomnienie o terminie zwrotu książki: " + book.getTitle();
-                    String htmlContent = formatLoanReminderContent(user, book, event);
+        String subject = "Przypomnienie o terminie zwrotu książki: " + book.getTitle();
+        String htmlContent = formatLoanReminderContent(user, book, event);
 
-                    emailService.sendEmail(user.getEmail(), subject, htmlContent);
-                }, error -> {
-                    System.err.println("Błąd podczas pobierania danych dla zwrotu o ID " + event.getLoanId() + ": " + error.getMessage());
-                });
+        emailService.sendEmail(user.getEmail(), subject, htmlContent);
     }
 
     public void handleLoanOverdueNotification(LoanOverdueEvent event) {
-        restClientService.getUserById(event.getUserId())
-                .zipWith(restClientService.getBookById(event.getBookId()))
-                .subscribe(tuple -> {
-                    UserDto user = tuple.getT1();
-                    BookDto book = tuple.getT2();
+        UserDTO user = event.getUser();
+        BookDTO book = event.getBook();
 
-                    String subject = "Przypomnienie o terminie zwrotu książki: " + book.getTitle();
-                    String htmlContent = formatLoanOverdueContent(user, book, event);
+        String subject = "Przypomnienie o terminie zwrotu książki: " + book.getTitle();
+        String htmlContent = formatLoanOverdueContent(user, book, event);
 
-                    emailService.sendEmail(user.getEmail(), subject, htmlContent);
-                }, error -> {
-                    System.err.println("Błąd podczas pobierania danych dla zwrotu o ID " + event.getLoanId() + ": " + error.getMessage());
-                });
+        emailService.sendEmail(user.getEmail(), subject, htmlContent);
     }
 
-    private String formatLoanOverdueContent(UserDto user, BookDto book, LoanOverdueEvent event) {
+    private String formatLoanOverdueContent(UserDTO user, BookDTO book, LoanOverdueEvent event) {
         String loanDateStr = (event.getLoanDate() != null) ?
                 event.getLoanDate().format(DATE_FORMATTER) : "N/A";
         String dueDateStr = (event.getDueDate() != null) ?
@@ -111,7 +86,7 @@ public class NotificationService {
         );
     }
 
-    private String formatLoanReminderContent(UserDto user, BookDto book, LoanReminderEvent event) {
+    private String formatLoanReminderContent(UserDTO user, BookDTO book, LoanReminderEvent event) {
         String loanDateStr = (event.getLoanDate() != null) ?
                 event.getLoanDate().format(DATE_FORMATTER) : "N/A";
         String dueDateStr = (event.getDueDate() != null) ?
@@ -136,7 +111,7 @@ public class NotificationService {
         );
     }
 
-    private String formatLoanCreatedContent(UserDto user, BookDto book, LoanCreatedEvent event) {
+    private String formatLoanCreatedContent(UserDTO user, BookDTO book, LoanCreatedEvent event) {
         return String.format(
                 "<p>Witaj %s %s,</p>" +
                         "<p>Potwierdzamy wypożyczenie książki:</p>" +
@@ -153,7 +128,7 @@ public class NotificationService {
         );
     }
 
-    private String formatLoanReturnedContent(UserDto user, BookDto book, LoanReturnedEvent event) {
+    private String formatLoanReturnedContent(UserDTO user, BookDTO book, LoanReturnedEvent event) {
         return String.format(
                 "<p>Witaj %s %s,</p>" +
                         "<p>Dziękujemy za zwrot książki:</p>" +

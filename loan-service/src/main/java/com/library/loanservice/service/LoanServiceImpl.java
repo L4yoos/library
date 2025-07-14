@@ -1,13 +1,14 @@
 package com.library.loanservice.service;
 
-import com.library.loanservice.dto.UserDTO;
+import com.library.common.dto.BookDTO;
+import com.library.common.dto.UserDTO;
+import com.library.common.event.LoanCreatedEvent;
+import com.library.common.event.LoanReturnedEvent;
 import com.library.loanservice.exception.*;
 import com.library.loanservice.model.Loan;
 import com.library.loanservice.model.LoanStatus;
 import com.library.loanservice.producer.LoanEventProducer;
 import com.library.loanservice.repository.LoanRepository;
-import com.library.loanservice.event.LoanCreatedEvent;
-import com.library.loanservice.event.LoanReturnedEvent;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -62,6 +63,10 @@ public class LoanServiceImpl implements LoanService {
         if (user == null) {
             throw new UserNotFoundException(userId);
         }
+        BookDTO book = restClientService.getBookById(bookId).block();
+        if (book == null) {
+            throw new BookNotFoundException(bookId);
+        }
 
         Optional<Loan> activeLoan = loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED);
         if (activeLoan.isPresent()) {
@@ -87,8 +92,8 @@ public class LoanServiceImpl implements LoanService {
 
         LoanCreatedEvent event = new LoanCreatedEvent(
                 savedLoan.getId(),
-                savedLoan.getBookId(),
-                savedLoan.getUserId(),
+                user,
+                book,
                 savedLoan.getLoanDate(),
                 savedLoan.getDueDate()
         );
@@ -101,6 +106,15 @@ public class LoanServiceImpl implements LoanService {
     public Loan returnBook(UUID loanId) {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new LoanNotFoundException(loanId, "loan"));
+
+        UserDTO user = restClientService.getUserById(loan.getUserId()).block();
+        if (user == null) {
+            throw new UserNotFoundException(loan.getUserId());
+        }
+        BookDTO book = restClientService.getBookById(loan.getBookId()).block();
+        if (book == null) {
+            throw new BookNotFoundException(loan.getBookId());
+        }
 
         if (loan.getStatus() == LoanStatus.RETURNED) {
             throw new LoanAlreadyReturnedException(loanId);
@@ -121,8 +135,8 @@ public class LoanServiceImpl implements LoanService {
 
         LoanReturnedEvent event = new LoanReturnedEvent(
                 returnedLoan.getId(),
-                returnedLoan.getBookId(),
-                returnedLoan.getUserId(),
+                user,
+                book,
                 returnedLoan.getLoanDate(),
                 returnedLoan.getDueDate(),
                 returnedLoan.getReturnDate()

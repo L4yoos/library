@@ -1,9 +1,9 @@
 package com.library.loanservice.producer;
 
-import com.library.loanservice.event.LoanCreatedEvent;
-import com.library.loanservice.event.LoanOverdueEvent;
-import com.library.loanservice.event.LoanReminderEvent;
-import com.library.loanservice.event.LoanReturnedEvent;
+import com.library.common.event.LoanCreatedEvent;
+import com.library.common.event.LoanOverdueEvent;
+import com.library.common.event.LoanReminderEvent;
+import com.library.common.event.LoanReturnedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
