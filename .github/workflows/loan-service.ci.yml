@@ -37,7 +37,7 @@ jobs:
       - name: Build and push Docker image for Loan Service
         uses: docker/build-push-action@v5
         with:
-          context: ./loan-service
+          context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/library-loan-service:latest
           cache-from: type=gha

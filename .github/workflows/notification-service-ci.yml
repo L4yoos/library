@@ -37,7 +37,7 @@ jobs:
       - name: Build and push Docker image for Notification Service
         uses: docker/build-push-action@v5
         with:
-          context: ./notification-service
+          context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/library-notification-service:latest
           cache-from: type=gha
