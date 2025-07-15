@@ -1,10 +1,10 @@
 package com.library.loanservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.library.common.exception.UserNotFoundException;
 import com.library.loanservice.exception.BookAlreadyBorrowedException;
 import com.library.loanservice.exception.LoanAlreadyReturnedException;
 import com.library.loanservice.exception.LoanNotFoundException;
-import com.library.loanservice.exception.UserNotFoundException;
 import com.library.loanservice.model.Loan;
 import com.library.loanservice.model.LoanStatus;
 import com.library.loanservice.service.LoanService;
@@ -19,7 +19,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;

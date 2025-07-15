@@ -50,8 +50,8 @@ services:
 
   book-service:
     build:
-      context: ./book-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./book-service/Dockerfile
     container_name: library_book_service
     ports:
       - "8880:8880"
@@ -65,8 +65,8 @@ services:
 
   user-service:
     build:
-      context: ./user-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./user-service/Dockerfile
     container_name: library_user_service
     ports:
       - "8881:8881"

@@ -2,8 +2,8 @@ package com.library.loanservice.service;
 
 import com.library.common.dto.BookDTO;
 import com.library.common.dto.UserDTO;
+import com.library.common.exception.UserNotFoundException;
 import com.library.loanservice.exception.ServiceCommunicationException;
-import com.library.loanservice.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;

@@ -37,7 +37,9 @@ jobs:
       - name: Build and push Docker image for User Service
         uses: docker/build-push-action@v5
         with:
-          context: ./user-service
+          context: .
+          file: user-service/Dockerfile
+          target: user-service-run
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/library-user-service:latest
           cache-from: type=gha

@@ -2,7 +2,6 @@ package com.library.userservice.controller;
 
 import com.library.userservice.dto.ResponseDTO;
 import com.library.userservice.dto.UserResponseDTO;
-import com.library.userservice.exception.UserNotFoundException;
 import com.library.userservice.model.User;
 import com.library.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,12 +14,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 

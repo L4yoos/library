@@ -37,7 +37,9 @@ jobs:
       - name: Build and push Docker image for Book Service
         uses: docker/build-push-action@v5
         with:
-          context: ./book-service
+          context: .
+          file: book-service/Dockerfile
+          target: book-service-run
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/library-book-service:latest
           cache-from: type=gha

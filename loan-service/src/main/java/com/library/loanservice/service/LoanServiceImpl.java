@@ -4,6 +4,8 @@ import com.library.common.dto.BookDTO;
 import com.library.common.dto.UserDTO;
 import com.library.common.event.LoanCreatedEvent;
 import com.library.common.event.LoanReturnedEvent;
+import com.library.common.exception.BookNotFoundException;
+import com.library.common.exception.UserNotFoundException;
 import com.library.loanservice.exception.*;
 import com.library.loanservice.model.Loan;
 import com.library.loanservice.model.LoanStatus;

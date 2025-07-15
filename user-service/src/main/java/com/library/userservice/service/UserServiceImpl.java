@@ -1,6 +1,6 @@
 package com.library.userservice.service;
 
-import com.library.userservice.exception.UserNotFoundException;
+import com.library.common.exception.UserNotFoundException;
 import com.library.userservice.model.User;
 import com.library.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

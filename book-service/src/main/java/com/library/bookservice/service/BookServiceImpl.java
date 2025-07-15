@@ -1,5 +1,6 @@
 package com.library.bookservice.service;
 
+import com.library.common.exception.BookNotFoundException;
 import com.library.bookservice.exception.*;
 import com.library.bookservice.model.Book;
 import com.library.bookservice.model.valueobjects.BookStock;

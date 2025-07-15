@@ -1,6 +1,5 @@
 package com.library.bookservice.service;
 
-import com.library.bookservice.exception.BookNotFoundException;
 import com.library.bookservice.exception.DuplicateIsbnException;
 import com.library.bookservice.exception.InvalidQuantityException;
 import com.library.bookservice.exception.OutOfStockException;
@@ -9,6 +8,7 @@ import com.library.bookservice.model.Book;
 import com.library.bookservice.model.valueobjects.ISBN;
 import com.library.bookservice.model.valueobjects.BookStock;
 import com.library.bookservice.repository.BookRepository;
+import com.library.common.exception.BookNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

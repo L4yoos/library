@@ -1,7 +1,6 @@
 package com.library.bookservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.library.bookservice.exception.BookNotFoundException;
 import com.library.bookservice.exception.DuplicateIsbnException;
 import com.library.bookservice.exception.InvalidQuantityException;
 import com.library.bookservice.exception.OutOfStockException;
@@ -9,6 +8,7 @@ import com.library.bookservice.model.Book;
 import com.library.bookservice.model.valueobjects.BookStock;
 import com.library.bookservice.model.valueobjects.ISBN;
 import com.library.bookservice.service.BookService;
+import com.library.common.exception.BookNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

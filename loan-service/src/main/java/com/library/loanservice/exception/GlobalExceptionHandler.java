@@ -1,5 +1,6 @@
 package com.library.loanservice.exception;
 
+import com.library.common.exception.UserNotFoundException;
 import com.library.loanservice.dto.ResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;

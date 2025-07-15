@@ -1,8 +1,8 @@
 package com.library.userservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.library.common.exception.UserNotFoundException;
 import com.library.userservice.dto.UserResponseDTO;
-import com.library.userservice.exception.UserNotFoundException;
 import com.library.userservice.model.User;
 import com.library.userservice.model.valueobjects.EmailAddress;
 import com.library.userservice.model.valueobjects.FirstName;

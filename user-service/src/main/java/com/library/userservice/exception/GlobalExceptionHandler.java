@@ -1,5 +1,6 @@
 package com.library.userservice.exception;
 
+import com.library.common.exception.UserNotFoundException;
 import com.library.userservice.dto.ResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @ControllerAdvice
-public class GlobalHandlerException {
+public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
