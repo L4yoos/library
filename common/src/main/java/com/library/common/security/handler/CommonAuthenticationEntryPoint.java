@@ -30,7 +30,6 @@ public class CommonAuthenticationEntryPoint implements AuthenticationEntryPoint 
                          AuthenticationException authException) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
 
         ResponseDTO errorResponse = new ResponseDTO(
                 LocalDateTime.now(),

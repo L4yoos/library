@@ -40,8 +40,8 @@ public class LoanReminderSchedulerImpl implements LoanReminderScheduler {
 
         for (Loan loan : loansDueSoon) {
             try {
-                UserDTO user = restClientService.getUserById(loan.getUserId()).block();
-                BookDTO book = restClientService.getBookById(loan.getBookId()).block();
+                UserDTO user = restClientService.getUserById(loan.getUserId());
+                BookDTO book = restClientService.getBookById(loan.getBookId());
 
                 if (user != null && book != null) {
                     LoanReminderEvent event = new LoanReminderEvent(
@@ -55,6 +55,7 @@ public class LoanReminderSchedulerImpl implements LoanReminderScheduler {
                 }
             } catch (Exception e) {
                 // Kontynuuj przetwarzanie innych wypożyczeń, nawet jeśli jedno zawiedzie
+                //TODO
             }
         }
     }
@@ -76,8 +77,8 @@ public class LoanReminderSchedulerImpl implements LoanReminderScheduler {
                     loanRepository.save(loan);
                 }
 
-                UserDTO user = restClientService.getUserById(loan.getUserId()).block();
-                BookDTO book = restClientService.getBookById(loan.getBookId()).block();
+                UserDTO user = restClientService.getUserById(loan.getUserId());
+                BookDTO book = restClientService.getBookById(loan.getBookId());
 
                 if (user != null && book != null) {
                     LoanOverdueEvent event = new LoanOverdueEvent(
@@ -90,7 +91,7 @@ public class LoanReminderSchedulerImpl implements LoanReminderScheduler {
                     loanEventProducer.publishLoanOverdueEvent(event);
                 }
             } catch (Exception e) {
-                //test
+                //TODO
             }
         }
     }

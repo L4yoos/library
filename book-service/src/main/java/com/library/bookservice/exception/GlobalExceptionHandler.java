@@ -1,6 +1,6 @@
 package com.library.bookservice.exception;
 
-import com.library.bookservice.dto.ResponseDTO;
+import com.library.common.dto.ResponseDTO;
 import com.library.common.exception.BookNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;

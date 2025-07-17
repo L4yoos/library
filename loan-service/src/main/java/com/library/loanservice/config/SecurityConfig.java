@@ -1,0 +1,113 @@
+package com.library.loanservice.config;
+
+import com.library.common.security.AuthTokenFilter;
+import com.library.common.security.JwtTokenProvider;
+import com.library.common.security.handler.CommonAccessDeniedHandler;
+import com.library.common.security.handler.CommonAuthenticationEntryPoint;
+
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.Collections;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
+
+    @Value("${internal.api-key.header-name}")
+    private String apiKeyHeaderName;
+
+    @Value("${internal.api-key.value}")
+    private String apiKeyValue;
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${jwt.expiration.ms}")
+    private int jwtExpirationMs;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public JwtTokenProvider jwtTokenProvider() {
+        return new JwtTokenProvider();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsServiceForAuthTokenFilter() {
+        return username -> {
+            return new User(username, "", Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+        };
+    }
+
+    @Bean
+    public AuthTokenFilter authenticationJwtTokenFilter(
+            JwtTokenProvider jwtTokenProvider,
+            UserDetailsService userDetailsServiceForAuthTokenFilter) {
+        return new AuthTokenFilter(jwtTokenProvider, userDetailsServiceForAuthTokenFilter);
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
+    }
+
+    @Bean
+    public AuthenticationEntryPoint jwtAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        return new CommonAuthenticationEntryPoint(objectMapper);
+    }
+
+    @Bean
+    public AccessDeniedHandler jwtAccessDeniedHandler(ObjectMapper objectMapper) {
+        return new CommonAccessDeniedHandler(objectMapper);
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AuthTokenFilter authenticationJwtTokenFilter,
+            AuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            AccessDeniedHandler jwtAccessDeniedHandler
+    ) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler)
+                );
+
+        http.securityMatcher("/**")
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(authenticationJwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+}

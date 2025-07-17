@@ -27,7 +27,7 @@ public class RestClientServiceImpl implements RestClientService {
     private String userServiceUrl;
 
     @Override
-    public Mono<BookDTO> getBookById(UUID bookId) {
+    public BookDTO getBookById(UUID bookId) {
         String url = bookServiceUrl + "/" + bookId;
         return webClient.get()
                 .uri(url)
@@ -40,11 +40,12 @@ public class RestClientServiceImpl implements RestClientService {
                         return Mono.error(new ServiceCommunicationException("Book Service",
                                 "Received error from book service: " + e.getStatusCode()));
                     }
-                });
+                })
+                .block();
     }
 
     @Override
-    public Mono<UserDTO> getUserById(UUID userId) {
+    public UserDTO getUserById(UUID userId) {
         String url = userServiceUrl + "/" + userId;
         return webClient.get()
                 .uri(url)
@@ -57,7 +58,9 @@ public class RestClientServiceImpl implements RestClientService {
                         return Mono.error(new ServiceCommunicationException("User Service",
                                 "Received error from user service: " + e.getStatusCode()));
                     }
-                });
+                })
+                .block();
+        //TODO 401 from User-service
     }
 
     @Override

@@ -46,6 +46,7 @@ public class JwtTokenProvider {
             Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parse(authToken);
             return true;
         } catch (MalformedJwtException e) {
+            //TODO
         } catch (ExpiredJwtException e) {
         } catch (UnsupportedJwtException e) {
         } catch (IllegalArgumentException e) {

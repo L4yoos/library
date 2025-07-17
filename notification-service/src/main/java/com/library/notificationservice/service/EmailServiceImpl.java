@@ -42,6 +42,7 @@ public class EmailServiceImpl implements EmailService {
         try {
             restTemplate.postForEntity("https://api.resend.com/emails", entity, String.class);
             System.out.println("E-mail wysłany pomyślnie do: " + to);
+            //TODO LOGGER
         } catch (HttpClientErrorException e) {
             System.err.println("Błąd klienta (HTTP " + e.getStatusCode() + ") podczas wysyłania e-maila do " + to + ": " + e.getResponseBodyAsString());
         } catch (Exception e) {

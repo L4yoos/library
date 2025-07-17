@@ -7,7 +7,6 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -65,6 +64,8 @@ public class User {
     private LocalDate registrationDate;
 
     private boolean active;
+
+    //TODO roles
 
     public User(String firstNameValue, String lastNameValue, String passwordHash,
                 String emailValue, String phoneNumberValue, String address) {

@@ -22,6 +22,7 @@ public class AuthController {
 
     private final AuthService authService;
 
+    //TODO Swagger
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody RegistrationRequest request) {
         authService.registerUser(request);

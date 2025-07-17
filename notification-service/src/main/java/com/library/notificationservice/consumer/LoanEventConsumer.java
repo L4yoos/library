@@ -1,6 +1,5 @@
 package com.library.notificationservice.consumer;
 
-
 import com.library.common.event.LoanCreatedEvent;
 import com.library.common.event.LoanOverdueEvent;
 import com.library.common.event.LoanReminderEvent;

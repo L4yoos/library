@@ -171,7 +171,7 @@ class LoanServiceImplTest {
     @Test
     @DisplayName("borrowBook should successfully borrow a book and publish event")
     void borrowBook_shouldSucceed_andPublishEvent() {
-        when(restClientService.getUserById(userId)).thenReturn(Mono.just(userDTO));
+        when(restClientService.getUserById(userId)).thenReturn(userDTO);
         when(loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED))
                 .thenReturn(Optional.empty());
         when(restClientService.borrowBookInBookService(bookId)).thenReturn(Mono.just(true));
@@ -209,7 +209,7 @@ class LoanServiceImplTest {
     @Test
     @DisplayName("borrowBook should throw BookAlreadyBorrowedException when book is already borrowed by user")
     void borrowBook_shouldThrowBookAlreadyBorrowedException_whenBookAlreadyBorrowedByUser() {
-        when(restClientService.getUserById(userId)).thenReturn(Mono.just(userDTO));
+        when(restClientService.getUserById(userId)).thenReturn(userDTO);
         when(loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED))
                 .thenReturn(Optional.of(loan));
 
@@ -226,7 +226,7 @@ class LoanServiceImplTest {
     @Test
     @DisplayName("borrowBook should throw BookNotAvailableException when Book Service returns false")
     void borrowBook_shouldThrowBookNotAvailableException_whenBookServiceReturnsFalse() {
-        when(restClientService.getUserById(userId)).thenReturn(Mono.just(userDTO));
+        when(restClientService.getUserById(userId)).thenReturn(userDTO);
         when(loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED))
                 .thenReturn(Optional.empty());
         when(restClientService.borrowBookInBookService(bookId)).thenReturn(Mono.just(false));

@@ -1,6 +1,6 @@
 package com.library.loanservice.controller;
 
-import com.library.loanservice.dto.ResponseDTO;
+import com.library.common.dto.ResponseDTO;
 import com.library.loanservice.model.Loan;
 import com.library.loanservice.service.LoanService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,11 +12,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController

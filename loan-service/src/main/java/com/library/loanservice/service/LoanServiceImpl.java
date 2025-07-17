@@ -61,11 +61,11 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public Loan borrowBook(UUID userId, UUID bookId) {
-        UserDTO user = restClientService.getUserById(userId).block();
+        UserDTO user = restClientService.getUserById(userId);
         if (user == null) {
             throw new UserNotFoundException(userId);
         }
-        BookDTO book = restClientService.getBookById(bookId).block();
+        BookDTO book = restClientService.getBookById(bookId);
         if (book == null) {
             throw new BookNotFoundException(bookId);
         }
@@ -109,11 +109,11 @@ public class LoanServiceImpl implements LoanService {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new LoanNotFoundException(loanId, "loan"));
 
-        UserDTO user = restClientService.getUserById(loan.getUserId()).block();
+        UserDTO user = restClientService.getUserById(loan.getUserId());
         if (user == null) {
             throw new UserNotFoundException(loan.getUserId());
         }
-        BookDTO book = restClientService.getBookById(loan.getBookId()).block();
+        BookDTO book = restClientService.getBookById(loan.getBookId());
         if (book == null) {
             throw new BookNotFoundException(loan.getBookId());
         }

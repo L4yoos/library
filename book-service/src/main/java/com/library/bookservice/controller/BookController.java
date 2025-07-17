@@ -1,8 +1,8 @@
 package com.library.bookservice.controller;
 
-import com.library.bookservice.dto.ResponseDTO;
 import com.library.bookservice.model.Book;
 import com.library.bookservice.service.BookService;
+import com.library.common.dto.ResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

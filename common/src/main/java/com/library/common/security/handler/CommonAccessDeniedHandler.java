@@ -30,7 +30,6 @@ public class CommonAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException) throws IOException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
 
         ResponseDTO errorResponse = new ResponseDTO(
                 LocalDateTime.now(),

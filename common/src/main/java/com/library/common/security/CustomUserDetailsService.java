@@ -25,7 +25,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             UserAuthDTO userAuthDTO = webClient.get()
                     .uri(userServiceInternalAuthUrl + "/internal/auth-data/" + email)
                     .retrieve()
-                    .bodyToMono(UserAuthDTO.class) // Oczekujemy UserAuthDTO
+                    .bodyToMono(UserAuthDTO.class)
                     .block();
 
             if (userAuthDTO == null) {
