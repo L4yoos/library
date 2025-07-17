@@ -1,6 +1,8 @@
 package com.library.userservice.service;
 
 import com.library.common.exception.UserNotFoundException;
+import com.library.userservice.exception.EmailAlreadyExistsException;
+import com.library.userservice.exception.PhoneNumberAlreadyExistsException;
 import com.library.userservice.model.User;
 import com.library.userservice.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -29,6 +32,9 @@ class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -41,6 +47,7 @@ class UserServiceImplTest {
         user = new User(
                 "John",
                 "Doe",
+                "password123",
                 "john.doe@example.com",
                 "123456789",
                 "123 Main St"
@@ -53,7 +60,7 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Should return all users successfully")
     void getAllUsers_shouldReturnListOfUsers() {
-        List<User> users = Arrays.asList(user, new User("Jane", "Smith", "jane.smith@example.com", "987654321", "456 Oak Ave"));
+        List<User> users = Arrays.asList(user, new User("Jane", "Smith", "password123", "jane.smith@example.com", "987654321", "456 Oak Ave"));
         when(userRepository.findAll()).thenReturn(users);
 
         List<User> result = userService.getAllUsers();
@@ -104,7 +111,7 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Should create a new user successfully with unique email and phone")
     void createUser_shouldCreateUserSuccessfully() {
-        User newUser = new User("New", "User", "new.user@example.com", "111222333", "789 Pine Rd");
+        User newUser = new User("New", "User", "password123", "new.user@example.com", "111222333", "789 Pine Rd");
         newUser.setId(UUID.randomUUID());
 
         when(userRepository.findByEmailValue(newUser.getEmail().getValue())).thenReturn(Optional.empty());
@@ -125,14 +132,14 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Should throw IllegalArgumentException when creating user with existing email")
     void createUser_shouldThrowExceptionWhenEmailExists() {
-        User existingUser = new User("Existing", "User", "john.doe@example.com", "999888777", "Existing Address");
+        User existingUser = new User("Existing", "User", "password123", "john.doe@example.com", "999888777", "Existing Address");
         when(userRepository.findByEmailValue("john.doe@example.com")).thenReturn(Optional.of(existingUser));
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+        EmailAlreadyExistsException thrown = assertThrows(EmailAlreadyExistsException.class, () -> {
             userService.createUser(user);
         });
 
-        assertThat(thrown.getMessage()).isEqualTo("The user with the specified email address already exists.");
+        assertThat(thrown.getMessage()).isEqualTo("User with email: 'john.doe@example.com' already exists.");
         verify(userRepository, times(1)).findByEmailValue("john.doe@example.com");
         verify(userRepository, never()).findByPhoneNumberValue(anyString());
         verify(userRepository, never()).save(any(User.class));
@@ -141,15 +148,15 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Should throw IllegalArgumentException when creating user with existing phone number")
     void createUser_shouldThrowExceptionWhenPhoneNumberExists() {
-        User existingUser = new User("Existing", "User", "unique.email@example.com", "123456789", "Existing Address");
+        User existingUser = new User("Existing", "User", "password123", "unique.email@example.com", "123456789", "Existing Address");
         when(userRepository.findByEmailValue("john.doe@example.com")).thenReturn(Optional.empty());
         when(userRepository.findByPhoneNumberValue("123456789")).thenReturn(Optional.of(existingUser));
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+        PhoneNumberAlreadyExistsException thrown = assertThrows(PhoneNumberAlreadyExistsException.class, () -> {
             userService.createUser(user);
         });
 
-        assertThat(thrown.getMessage()).isEqualTo("The user with the specified telephone number already exists.");
+        assertThat(thrown.getMessage()).isEqualTo("User with Number: '123456789' already exists.");
         verify(userRepository, times(1)).findByEmailValue("john.doe@example.com");
         verify(userRepository, times(1)).findByPhoneNumberValue("123456789");
         verify(userRepository, never()).save(any(User.class));
@@ -158,10 +165,10 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Should update user successfully when user exists and new details are valid")
     void updateUser_shouldUpdateUserSuccessfully() {
-        User updatedDetails = new User("Updated", "Name", "updated.email@example.com", "999888777", "Updated Address");
+        User updatedDetails = new User("Updated", "Name", "password123", "updated.email@example.com", "999888777", "Updated Address");
         updatedDetails.setId(userId);
 
-        User existingUser = new User("John", "Doe", "john.doe@example.com", "123456789", "Original Address");
+        User existingUser = new User("John", "Doe", "password123", "john.doe@example.com", "123456789", "Original Address");
         existingUser.setId(userId);
         existingUser.setRegistrationDate(LocalDate.now());
 
@@ -188,10 +195,10 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Should update user successfully when email/phone are unchanged")
     void updateUser_shouldUpdateUserSuccessfullyWhenEmailPhoneUnchanged() {
-        User updatedDetails = new User("Updated", "Name", "john.doe@example.com", "123456789", "Updated Address");
+        User updatedDetails = new User("Updated", "Name", "password123", "john.doe@example.com", "123456789", "Updated Address");
         updatedDetails.setId(userId);
 
-        User existingUser = new User("John", "Doe", "john.doe@example.com", "123456789", "Original Address");
+        User existingUser = new User("John", "Doe", "password123", "john.doe@example.com", "123456789", "Original Address");
         existingUser.setId(userId);
         existingUser.setRegistrationDate(LocalDate.now());
 
@@ -214,11 +221,13 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Should return empty Optional when user not found for update")
     void updateUser_shouldReturnEmptyOptionalWhenUserNotFound() {
-        User userDetails = new User("Any", "User", "any.email@example.com", "anyphone", "Any Address");
+        User userDetails = new User("Any", "User", "password123", "any.email@example.com", "anyphone", "Any Address");
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        User result = userService.updateUser(userId, userDetails);
+        UserNotFoundException thrown = assertThrows(UserNotFoundException.class,
+                () -> userService.updateUser(userId, userDetails));
 
+        assertThat(thrown.getMessage()).isEqualTo("User with ID " + userId + " not found.");
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, never()).save(any(User.class));
     }
@@ -226,21 +235,21 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Should throw IllegalArgumentException when new email is already taken by another user")
     void updateUser_shouldThrowExceptionWhenNewEmailTaken() {
-        User updatedDetails = new User("John", "Doe", "taken.email@example.com", "123456789", "123 Main St");
-        User existingUser = new User("John", "Doe", "john.doe@example.com", "123456789", "Original Address");
+        User updatedDetails = new User("John", "Doe", "password123", "taken.email@example.com", "123456789", "123 Main St");
+        User existingUser = new User("John", "Doe", "password123", "john.doe@example.com", "123456789", "Original Address");
         existingUser.setId(userId);
 
-        User conflictingUser = new User("Another", "User", "taken.email@example.com", "000000000", "Conflicting Address");
+        User conflictingUser = new User("Another", "User", "password123", "taken.email@example.com", "000000000", "Conflicting Address");
         conflictingUser.setId(UUID.randomUUID());
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.findByEmailValue("taken.email@example.com")).thenReturn(Optional.of(conflictingUser));
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+        EmailAlreadyExistsException thrown = assertThrows(EmailAlreadyExistsException.class, () -> {
             userService.updateUser(userId, updatedDetails);
         });
 
-        assertThat(thrown.getMessage()).isEqualTo("The new email address is already taken.");
+        assertThat(thrown.getMessage()).isEqualTo("User with email: 'taken.email@example.com' already exists.");
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, times(1)).findByEmailValue("taken.email@example.com");
         verify(userRepository, never()).save(any(User.class));
@@ -249,21 +258,21 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Should throw IllegalArgumentException when new phone number is already taken by another user")
     void updateUser_shouldThrowExceptionWhenNewPhoneNumberTaken() {
-        User updatedDetails = new User("John", "Doe", "john.doe@example.com", "999999999", "123 Main St");
-        User existingUser = new User("John", "Doe", "john.doe@example.com", "123456789", "Original Address");
+        User updatedDetails = new User("John", "Doe", "password123", "john.doe@example.com", "999999999", "123 Main St");
+        User existingUser = new User("John", "Doe", "password123", "john.doe@example.com", "123456789", "Original Address");
         existingUser.setId(userId);
 
-        User conflictingUser = new User("Another", "User", "another.email@example.com", "999999999", "Conflicting Address");
+        User conflictingUser = new User("Another", "User", "password123", "another.email@example.com", "999999999", "Conflicting Address");
         conflictingUser.setId(UUID.randomUUID());
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.findByPhoneNumberValue("999999999")).thenReturn(Optional.of(conflictingUser));
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+        PhoneNumberAlreadyExistsException thrown = assertThrows(PhoneNumberAlreadyExistsException.class, () -> {
             userService.updateUser(userId, updatedDetails);
         });
 
-        assertThat(thrown.getMessage()).isEqualTo("The new phone number is already taken.");
+        assertThat(thrown.getMessage()).isEqualTo("User with Number: '999999999' already exists.");
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, never()).findByEmailValue(anyString());
         verify(userRepository, times(1)).findByPhoneNumberValue("999999999");

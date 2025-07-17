@@ -1,6 +1,7 @@
 package com.library.userservice.controller;
 
-import com.library.userservice.dto.ResponseDTO;
+import com.library.common.dto.ResponseDTO;
+import com.library.common.dto.UserAuthDTO;
 import com.library.userservice.dto.UserResponseDTO;
 import com.library.userservice.model.User;
 import com.library.userservice.service.UserService;
@@ -14,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -33,6 +35,9 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved list of users",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = UserResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred")
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
@@ -48,6 +53,12 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved user",
                 content = @Content(mediaType = "application/json",
                         schema = @Schema(implementation = UserResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires INTERNAL_SERVICE role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
                 content = @Content(mediaType = "application/json",
                         schema = @Schema(implementation = ResponseDTO.class)))
@@ -68,10 +79,17 @@ public class UserController {
     @ApiResponse(responseCode = "400", description = "Invalid user data provided",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires INTERNAL_SERVICE role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
-    @PostMapping
+    @PostMapping("/internal")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody User user) {
         User createdUser = userService.createUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(new UserResponseDTO(createdUser));
@@ -83,6 +101,9 @@ public class UserController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = UserResponseDTO.class)))
     @ApiResponse(responseCode = "400", description = "Invalid user data provided (e.g., validation errors)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
@@ -100,6 +121,9 @@ public class UserController {
     @Operation(summary = "Delete a user", description = "Deletes a user from the system by their unique ID.")
     @Parameter(description = "Unique ID of the user to delete", required = true, example = "a1b2c3d4-e5f6-7890-1234-567890abcdef")
     @ApiResponse(responseCode = "200", description = "User deleted successfully",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
@@ -126,6 +150,9 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "User deactivated successfully",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -150,6 +177,9 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "User activated successfully",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -167,5 +197,28 @@ public class UserController {
                 "/api/users/" + id + "/activate"
         );
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Get user authentication data by email", description = "Retrieves user authentication data for internal services by email.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved user authentication data",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = UserAuthDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires INTERNAL_SERVICE role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "404", description = "User not found (or auth data not found)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @GetMapping("/internal/auth-data/{email}")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    public ResponseEntity<UserAuthDTO> getUserAuthDataByEmail(@PathVariable String email) {
+        UserAuthDTO userAuthDTO = userService.getUserAuthDataByEmail(email);
+        return ResponseEntity.ok(userAuthDTO);
     }
 }

@@ -1,15 +1,13 @@
 package com.library.userservice.model;
 
-import com.library.userservice.model.valueobjects.EmailAddress;
-import com.library.userservice.model.valueobjects.FirstName;
-import com.library.userservice.model.valueobjects.LastName;
-import com.library.userservice.model.valueobjects.PhoneNumber;
+import com.library.userservice.model.valueobjects.*;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -43,6 +41,13 @@ public class User {
     @Embedded
     @Valid
     @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "password_hash"))
+    })
+    private Password password;
+
+    @Embedded
+    @Valid
+    @AttributeOverrides({
             @AttributeOverride(name = "value", column = @Column(name = "email_address", unique = true))
     })
     private EmailAddress email;
@@ -61,11 +66,12 @@ public class User {
 
     private boolean active;
 
-    public User(String firstNameValue, String lastNameValue,
+    public User(String firstNameValue, String lastNameValue, String passwordHash,
                 String emailValue, String phoneNumberValue, String address) {
         this.id = UUID.randomUUID();
         this.firstName = new FirstName(firstNameValue);
         this.lastName = new LastName(lastNameValue);
+        this.password = new Password(passwordHash);
         this.email = new EmailAddress(emailValue);
         this.phoneNumber = new PhoneNumber(phoneNumberValue);
         this.address = address;

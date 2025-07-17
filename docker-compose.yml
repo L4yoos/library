@@ -74,6 +74,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/library_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
+      INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -117,6 +121,23 @@ services:
       user-service:
         condition: service_started
       book-service:
+        condition: service_started
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./auth-service/Dockerfile
+    container_name: library_auth_service
+    ports:
+      - "8884:8884"
+    environment:
+      user-service.url: http://user-service:8881/api/users
+      INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
+      INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+    depends_on:
+      user-service:
         condition: service_started
 
 volumes:

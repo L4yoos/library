@@ -1,5 +1,6 @@
 package com.library.userservice.service;
 
+import com.library.common.dto.UserAuthDTO;
 import com.library.userservice.model.User;
 import java.util.List;
 import java.util.UUID;
@@ -12,4 +13,5 @@ public interface UserService {
     void deleteUser(UUID id);
     void deactivateUser(UUID id);
     void activateUser(UUID id);
+    UserAuthDTO getUserAuthDataByEmail(String email);
 }

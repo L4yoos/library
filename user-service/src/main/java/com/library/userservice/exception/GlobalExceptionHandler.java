@@ -1,7 +1,7 @@
 package com.library.userservice.exception;
 
+import com.library.common.dto.ResponseDTO;
 import com.library.common.exception.UserNotFoundException;
-import com.library.userservice.dto.ResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -87,6 +87,39 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // Nowy handler dla EmailAlreadyExistsException
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<ResponseDTO> handleEmailAlreadyExistsException(
+            EmailAlreadyExistsException ex, HttpServletRequest request) {
+        String errorMessage = ex.getMessage();
+
+        ResponseDTO errorResponse = new ResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                errorMessage,
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(PhoneNumberAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<ResponseDTO> handlePhoneNumberAlreadyExistsException(
+            PhoneNumberAlreadyExistsException ex, HttpServletRequest request) {
+        String errorMessage = ex.getMessage();
+
+        ResponseDTO errorResponse = new ResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                errorMessage,
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(Exception.class)

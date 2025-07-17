@@ -1,4 +1,4 @@
-package com.library.userservice.dto;
+package com.library.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

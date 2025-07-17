@@ -1,6 +1,9 @@
 package com.library.userservice.service;
 
+import com.library.common.dto.UserAuthDTO;
 import com.library.common.exception.UserNotFoundException;
+import com.library.userservice.exception.EmailAlreadyExistsException;
+import com.library.userservice.exception.PhoneNumberAlreadyExistsException;
 import com.library.userservice.model.User;
 import com.library.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +33,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User user) {
         if (user.getEmail() != null && userRepository.findByEmailValue(user.getEmail().getValue()).isPresent()) {
-            throw new IllegalArgumentException("The user with the specified email address already exists.");
+            throw new EmailAlreadyExistsException(user.getEmail().getValue());
         }
 
         if (user.getPhoneNumber() != null && userRepository.findByPhoneNumberValue(user.getPhoneNumber().getValue()).isPresent()) {
-            throw new IllegalArgumentException("The user with the specified telephone number already exists.");
+            throw new PhoneNumberAlreadyExistsException(user.getPhoneNumber().getValue());
         }
         user.setActive(true);
         return userRepository.save(user);
@@ -49,7 +52,7 @@ public class UserServiceImpl implements UserService {
                 !userDetails.getEmail().getValue().equals(existingUser.getEmail().getValue())) {
             Optional<User> userWithNewEmail = userRepository.findByEmailValue(userDetails.getEmail().getValue());
             if (userWithNewEmail.isPresent() && !userWithNewEmail.get().getId().equals(id)) {
-                throw new IllegalArgumentException("The new email address is already taken.");
+                throw new EmailAlreadyExistsException(userDetails.getEmail().getValue());
             }
         }
 
@@ -57,7 +60,7 @@ public class UserServiceImpl implements UserService {
                 !userDetails.getPhoneNumber().getValue().equals(existingUser.getPhoneNumber().getValue())) {
             Optional<User> userWithNewPhone = userRepository.findByPhoneNumberValue(userDetails.getPhoneNumber().getValue());
             if (userWithNewPhone.isPresent() && !userWithNewPhone.get().getId().equals(id)) {
-                throw new IllegalArgumentException("The new phone number is already taken.");
+                throw new PhoneNumberAlreadyExistsException(userDetails.getPhoneNumber().getValue());
             }
         }
 
@@ -92,5 +95,18 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
         user.setActive(true);
         userRepository.save(user);
+    }
+
+    @Override
+    public UserAuthDTO getUserAuthDataByEmail(String email) {
+        return userRepository.findByEmailValue(email)
+                .map(user -> new UserAuthDTO(
+                        user.getId(),
+                        user.getFirstName().getValue(),
+                        user.getLastName().getValue(),
+                        user.getEmail().getValue(),
+                        user.getPassword().getValue()
+                ))
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 }
