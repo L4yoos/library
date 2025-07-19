@@ -1,5 +1,6 @@
 package com.library.loanservice.service;
 
+import com.library.common.dto.BookDTO;
 import com.library.common.dto.UserDTO;
 import com.library.common.event.LoanCreatedEvent;
 import com.library.common.event.LoanReturnedEvent;
@@ -48,6 +49,7 @@ class LoanServiceImplTest {
     private UUID bookId;
     private Loan loan;
     private UserDTO userDTO;
+    private BookDTO bookDTO;
 
     @BeforeEach
     void setUp() {
@@ -63,6 +65,7 @@ class LoanServiceImplTest {
         loan.setStatus(LoanStatus.BORROWED);
 
         userDTO = new UserDTO(userId, "John", "Doe", "john.doe@example.com", "123456789", "Gdańsk, Gdańska 9", LocalDate.now(), true);
+        bookDTO = new BookDTO(bookId, "Test Title", "Test Author", "1234567890", 2000, "Publisher", "Genre", new BookDTO.Stock(5, 3));
     }
 
     @Test
@@ -172,6 +175,7 @@ class LoanServiceImplTest {
     @DisplayName("borrowBook should successfully borrow a book and publish event")
     void borrowBook_shouldSucceed_andPublishEvent() {
         when(restClientService.getUserById(userId)).thenReturn(userDTO);
+        when(restClientService.getBookById(bookId)).thenReturn(bookDTO);
         when(loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED))
                 .thenReturn(Optional.empty());
         when(restClientService.borrowBookInBookService(bookId)).thenReturn(Mono.just(true));
@@ -186,6 +190,7 @@ class LoanServiceImplTest {
         assertNotNull(result.getLoanDate());
 
         verify(restClientService, times(1)).getUserById(userId);
+        verify(restClientService, times(1)).getBookById(bookId);
         verify(loanRepository, times(1)).findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED);
         verify(restClientService, times(1)).borrowBookInBookService(bookId);
         verify(loanRepository, times(1)).save(any(Loan.class));
@@ -210,6 +215,7 @@ class LoanServiceImplTest {
     @DisplayName("borrowBook should throw BookAlreadyBorrowedException when book is already borrowed by user")
     void borrowBook_shouldThrowBookAlreadyBorrowedException_whenBookAlreadyBorrowedByUser() {
         when(restClientService.getUserById(userId)).thenReturn(userDTO);
+        when(restClientService.getBookById(bookId)).thenReturn(bookDTO);
         when(loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED))
                 .thenReturn(Optional.of(loan));
 
@@ -219,6 +225,7 @@ class LoanServiceImplTest {
 
         assertEquals("User with ID " + userId + " already has book with ID " + bookId + " currently borrowed.", thrown.getMessage());
         verify(restClientService, times(1)).getUserById(userId);
+        verify(restClientService, times(1)).getBookById(bookId);
         verify(loanRepository, times(1)).findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED);
         verify(restClientService, never()).borrowBookInBookService(any());
     }
@@ -227,6 +234,7 @@ class LoanServiceImplTest {
     @DisplayName("borrowBook should throw BookNotAvailableException when Book Service returns false")
     void borrowBook_shouldThrowBookNotAvailableException_whenBookServiceReturnsFalse() {
         when(restClientService.getUserById(userId)).thenReturn(userDTO);
+        when(restClientService.getBookById(bookId)).thenReturn(bookDTO);
         when(loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED))
                 .thenReturn(Optional.empty());
         when(restClientService.borrowBookInBookService(bookId)).thenReturn(Mono.just(false));
@@ -237,6 +245,7 @@ class LoanServiceImplTest {
 
         assertEquals("Book with ID " + bookId + " is currently not available for borrowing.", thrown.getMessage());
         verify(restClientService, times(1)).getUserById(userId);
+        verify(restClientService, times(1)).getBookById(bookId);
         verify(loanRepository, times(1)).findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED);
         verify(restClientService, times(1)).borrowBookInBookService(bookId);
         verify(loanRepository, never()).save(any(Loan.class));
@@ -275,6 +284,8 @@ class LoanServiceImplTest {
         loanToReturn.setStatus(LoanStatus.BORROWED);
 
         when(loanRepository.findById(loanId)).thenReturn(Optional.of(loanToReturn));
+        when(restClientService.getUserById(userId)).thenReturn(userDTO);
+        when(restClientService.getBookById(bookId)).thenReturn(bookDTO);
         when(restClientService.returnBookInBookService(bookId)).thenReturn(Mono.just(true));
         when(loanRepository.save(any(Loan.class))).thenReturn(loanToReturn);
 
@@ -286,6 +297,8 @@ class LoanServiceImplTest {
         assertEquals(loanId, result.getId());
 
         verify(loanRepository, times(1)).findById(loanId);
+        verify(restClientService, times(1)).getUserById(userId);
+        verify(restClientService, times(1)).getBookById(bookId);
         verify(restClientService, times(1)).returnBookInBookService(bookId);
         verify(loanRepository, times(1)).save(any(Loan.class));
         verify(loanEventProducer, times(1)).publishLoanReturnedEvent(any(LoanReturnedEvent.class));
@@ -310,6 +323,8 @@ class LoanServiceImplTest {
     void returnBook_shouldThrowLoanAlreadyReturnedException_whenLoanIsAlreadyReturned() {
         loan.setStatus(LoanStatus.RETURNED);
         when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(restClientService.getBookById(bookId)).thenReturn(bookDTO);
+        when(restClientService.getUserById(userId)).thenReturn(userDTO);
 
         LoanAlreadyReturnedException thrown = assertThrows(LoanAlreadyReturnedException.class, () -> {
             loanService.returnBook(loanId);

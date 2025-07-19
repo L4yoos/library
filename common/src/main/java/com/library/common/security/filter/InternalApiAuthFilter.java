@@ -1,4 +1,4 @@
-package com.library.userservice.config.filter;
+package com.library.common.security.filter;
 
 import com.library.common.exception.InvalidAuthenticationException;
 import jakarta.servlet.FilterChain;
@@ -26,17 +26,21 @@ public class InternalApiAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String requestUri = request.getRequestURI();
-
-        if (!requestUri.startsWith("/api/users/internal")) {
+        if (SecurityContextHolder.getContext().getAuthentication() != null &&
+                SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String actualApiKey = request.getHeader(apiKeyHeaderName);
 
-        if (actualApiKey == null || !actualApiKey.equals(apiKey)) {
-            throw new InvalidAuthenticationException("Invalid API key");
+        if (actualApiKey == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (!actualApiKey.equals(apiKey)) {
+            throw new InvalidAuthenticationException("Invalid API key provided for internal access.");
         }
 
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(

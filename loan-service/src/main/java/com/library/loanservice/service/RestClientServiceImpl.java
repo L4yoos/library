@@ -2,6 +2,7 @@ package com.library.loanservice.service;
 
 import com.library.common.dto.BookDTO;
 import com.library.common.dto.UserDTO;
+import com.library.common.exception.BookNotFoundException;
 import com.library.common.exception.UserNotFoundException;
 import com.library.loanservice.exception.ServiceCommunicationException;
 import lombok.RequiredArgsConstructor;
@@ -29,16 +30,20 @@ public class RestClientServiceImpl implements RestClientService {
     @Override
     public BookDTO getBookById(UUID bookId) {
         String url = bookServiceUrl + "/" + bookId;
+
         return webClient.get()
                 .uri(url)
                 .retrieve()
                 .bodyToMono(BookDTO.class)
                 .onErrorResume(WebClientResponseException.class, e -> {
                     if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                        return Mono.error(new UserNotFoundException(bookId));
+                        return Mono.error(new BookNotFoundException(bookId));
+                    } else if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                        return Mono.error(new ServiceCommunicationException("Book Service",
+                                "Unauthorized access to book service. Check credentials. Status: " + e.getStatusCode() + ", Body: " + e.getResponseBodyAsString()));
                     } else {
                         return Mono.error(new ServiceCommunicationException("Book Service",
-                                "Received error from book service: " + e.getStatusCode()));
+                                "Received error from book service: " + e.getStatusCode() + ", Body: " + e.getResponseBodyAsString()));
                     }
                 })
                 .block();
@@ -54,13 +59,16 @@ public class RestClientServiceImpl implements RestClientService {
                 .onErrorResume(WebClientResponseException.class, e -> {
                     if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                         return Mono.error(new UserNotFoundException(userId));
-                    } else {
+                    } else if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                         return Mono.error(new ServiceCommunicationException("User Service",
-                                "Received error from user service: " + e.getStatusCode()));
+                                "Unauthorized access to user service. Check credentials. Status: " + e.getStatusCode() + ", Body: " + e.getResponseBodyAsString()));
+                    }
+                    else {
+                        return Mono.error(new ServiceCommunicationException("User Service",
+                                "Received error from user service: " + e.getStatusCode() + ", Body: " + e.getResponseBodyAsString()));
                     }
                 })
                 .block();
-        //TODO 401 from User-service
     }
 
     @Override

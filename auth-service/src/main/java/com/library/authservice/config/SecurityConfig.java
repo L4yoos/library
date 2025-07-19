@@ -1,6 +1,6 @@
-package com.library.authservice.security;
+package com.library.authservice.config;
 
-import com.library.common.security.AuthTokenFilter;
+import com.library.common.security.filter.AuthTokenFilter;
 import com.library.common.security.CustomUserDetailsService;
 import com.library.common.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +41,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
                         .anyRequest().authenticated()
                 );
 

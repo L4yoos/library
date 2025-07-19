@@ -1,5 +1,6 @@
-package com.library.common.security;
+package com.library.common.security.filter;
 
+import com.library.common.security.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

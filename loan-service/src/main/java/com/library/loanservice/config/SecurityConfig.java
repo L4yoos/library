@@ -1,6 +1,6 @@
 package com.library.loanservice.config;
 
-import com.library.common.security.AuthTokenFilter;
+import com.library.common.security.filter.AuthTokenFilter;
 import com.library.common.security.JwtTokenProvider;
 import com.library.common.security.handler.CommonAccessDeniedHandler;
 import com.library.common.security.handler.CommonAuthenticationEntryPoint;
@@ -104,6 +104,8 @@ public class SecurityConfig {
 
         http.securityMatcher("/**")
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(authenticationJwtTokenFilter, UsernamePasswordAuthenticationFilter.class);

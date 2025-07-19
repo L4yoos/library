@@ -123,7 +123,7 @@ class UserControllerTest {
 
         when(userService.createUser(any(User.class))).thenReturn(createdUser);
 
-        mockMvc.perform(post("/api/users/internal")
+        mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newUserRequest)))
                 .andExpect(status().isCreated())

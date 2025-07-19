@@ -15,7 +15,7 @@ public class UserResponseDTO {
     private UUID id;
     private String firstName;
     private String lastName;
-    private String password;
+//    private String password;
     private String email;
     private String phoneNumber;
     private String address;
@@ -26,7 +26,7 @@ public class UserResponseDTO {
         this.id = user.getId();
         this.firstName = user.getFirstName() != null ? user.getFirstName().getValue() : null;
         this.lastName = user.getLastName() != null ? user.getLastName().getValue() : null;
-        this.password = user.getPassword() != null ?user.getPassword().getValue() : null;
+//        this.password = user.getPassword() != null ?user.getPassword().getValue() : null;
         this.email = user.getEmail() != null ? user.getEmail().getValue() : null;
         this.phoneNumber = user.getPhoneNumber() != null ? user.getPhoneNumber().getValue() : null;
         this.address = user.getAddress();

@@ -17,6 +17,13 @@ public class BookDTO implements Serializable {
     private Integer publicationYear;
     private String publisher;
     private String genre;
-    private Integer quantity;
-    private Integer availableCopies;
+    private Stock stock;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Stock implements Serializable {
+        private Integer quantity;
+        private Integer availableCopies;
+    }
 }

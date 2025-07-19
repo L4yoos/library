@@ -47,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             webClient.post()
-                    .uri(userServiceUrl + "/internal")
+                    .uri(userServiceUrl)
                     .bodyValue(userToCreate)
                     .retrieve()
                     .bodyToMono(UserDTO.class)

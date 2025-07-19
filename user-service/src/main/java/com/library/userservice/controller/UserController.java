@@ -2,6 +2,7 @@ package com.library.userservice.controller;
 
 import com.library.common.dto.ResponseDTO;
 import com.library.common.dto.UserAuthDTO;
+import com.library.common.dto.UserDTO;
 import com.library.userservice.dto.UserResponseDTO;
 import com.library.userservice.model.User;
 import com.library.userservice.service.UserService;
@@ -66,6 +67,7 @@ public class UserController {
                 content = @Content(mediaType = "application/json",
                         schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public ResponseEntity<UserResponseDTO> getUserById(
             @PathVariable UUID id) {
         User user = userService.getUserById(id);
@@ -88,7 +90,7 @@ public class UserController {
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
-    @PostMapping("/internal")
+    @PostMapping
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody User user) {
         User createdUser = userService.createUser(user);

@@ -1,11 +1,11 @@
 package com.library.userservice.config;
 
 
-import com.library.common.security.AuthTokenFilter;
+import com.library.common.security.filter.AuthTokenFilter;
 import com.library.common.security.JwtTokenProvider;
+import com.library.common.security.filter.InternalApiAuthFilter;
 import com.library.common.security.handler.CommonAccessDeniedHandler;
 import com.library.common.security.handler.CommonAuthenticationEntryPoint;
-import com.library.userservice.config.filter.InternalApiAuthFilter;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -104,17 +104,14 @@ public class SecurityConfig {
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 );
 
-        http.securityMatcher("/api/users/internal/**")
-                 .authorizeHttpRequests(auth -> auth
-                         .requestMatchers("/api/users/internal/**").hasRole("INTERNAL_SERVICE")
-                 )
-                 .addFilterBefore(new InternalApiAuthFilter(apiKeyHeaderName, apiKeyValue), UsernamePasswordAuthenticationFilter.class);
-
         http.securityMatcher("/**")
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(authenticationJwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(authenticationJwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new InternalApiAuthFilter(apiKeyHeaderName, apiKeyValue), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
