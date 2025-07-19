@@ -13,6 +13,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +28,8 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthService authService;
 
@@ -41,6 +45,7 @@ public class AuthController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PostMapping("/register")
     public ResponseEntity<ResponseDTO> registerUser(@Valid @RequestBody RegistrationRequest request) {
+        logger.info("Received registration request for email: {}", request.getEmail());
         authService.registerUser(request);
         ResponseDTO response = new ResponseDTO(
                 LocalDateTime.now(),
@@ -49,6 +54,7 @@ public class AuthController {
                 "User registered successfully!",
                 "/api/auth/register"
         );
+        logger.info("User with email {} registered successfully. Returning 201 Created.", request.getEmail());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -64,6 +70,7 @@ public class AuthController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        logger.info("Received login request for email: {}", loginRequest.getEmail());
         JwtResponse jwtResponse = authService.authenticateUser(loginRequest);
 
         Cookie jwtCookie = new Cookie("token", jwtResponse.getToken());
@@ -73,7 +80,7 @@ public class AuthController {
         jwtCookie.setMaxAge(3600);
 
         response.addCookie(jwtCookie);
-
+        logger.info("User with email {} logged in successfully. JWT token set in cookie and returned.", loginRequest.getEmail());
         return ResponseEntity.ok(jwtResponse);
     }
 }

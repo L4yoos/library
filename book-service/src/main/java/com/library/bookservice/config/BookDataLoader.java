@@ -5,6 +5,8 @@ import com.library.bookservice.model.valueobjects.BookStock;
 import com.library.bookservice.model.valueobjects.ISBN;
 import com.library.bookservice.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -15,12 +17,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookDataLoader implements CommandLineRunner {
 
+    private static final Logger logger = LoggerFactory.getLogger(BookDataLoader.class);
+
     private final BookRepository bookRepository;
 
     @Override
     public void run(String... args) {
         if (bookRepository.count() == 0) {
-            System.out.println("Loading sample book data into the database...");
+            logger.info("Loading sample book data into the database...");
 
             List<Book> books = Arrays.asList(
                     new Book("Wiedźmin: Ostatnie Życzenie", "Andrzej Sapkowski", new ISBN("978-83-7578-065-0"), 1993, "SuperNOWA", "Fantasy", new BookStock(5, 5)),
@@ -36,9 +40,9 @@ public class BookDataLoader implements CommandLineRunner {
             );
             bookRepository.saveAll(books);
 
-            System.out.println("Loading of sample data has been completed.");
+            logger.info("Loading of sample data has been completed.");
         } else {
-            System.out.println("The book database already contains records. I omit loading the start data.");
+            logger.info("The book database already contains records. Omitting loading the start data.");
         }
     }
 }

@@ -2,7 +2,6 @@ package com.library.userservice.controller;
 
 import com.library.common.dto.ResponseDTO;
 import com.library.common.dto.UserAuthDTO;
-import com.library.common.dto.UserDTO;
 import com.library.userservice.dto.UserResponseDTO;
 import com.library.userservice.model.User;
 import com.library.userservice.service.UserService;
@@ -14,6 +13,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
 @Tag(name = "User Management", description = "API for managing users")
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     private final UserService userService;
 
     @Operation(summary = "Get all users", description = "Retrieves a list of all existing users.")
@@ -42,18 +45,20 @@ public class UserController {
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred")
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        logger.info("Received request to get all users.");
         List<User> users = userService.getAllUsers();
         List<UserResponseDTO> userDTOs = users.stream()
                 .map(UserResponseDTO::new)
                 .collect(Collectors.toList());
+        logger.debug("Returning {} users.", userDTOs.size());
         return ResponseEntity.ok(userDTOs);
     }
 
     @Operation(summary = "Get user by ID", description = "Retrieves a single user by their unique ID.")
     @Parameter(description = "Unique ID of the user to retrieve", required = true, example = "a1b2c3d4-e5f6-7890-1234-567890abcdef")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved user",
-                content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = UserResponseDTO.class)))
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = UserResponseDTO.class)))
     @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -61,16 +66,18 @@ public class UserController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User not found",
-                content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = ResponseDTO.class)))
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
-                content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = ResponseDTO.class)))
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public ResponseEntity<UserResponseDTO> getUserById(
             @PathVariable UUID id) {
+        logger.info("Received request to get user by ID: {}", id);
         User user = userService.getUserById(id);
+        logger.debug("Returning user with ID: {}", id);
         return ResponseEntity.ok(new UserResponseDTO(user));
     }
 
@@ -93,7 +100,9 @@ public class UserController {
     @PostMapping
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody User user) {
+        logger.info("Received request to create user with email: {}", user.getEmail().getValue());
         User createdUser = userService.createUser(user);
+        logger.info("User created successfully with ID: {}", createdUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(new UserResponseDTO(createdUser));
     }
 
@@ -116,7 +125,9 @@ public class UserController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody User userDetails) {
+        logger.info("Received request to update user with ID: {}", id);
         User updatedUser = userService.updateUser(id, userDetails);
+        logger.info("User with ID: {} updated successfully.", id);
         return ResponseEntity.status(HttpStatus.OK).body(new UserResponseDTO(updatedUser));
     }
 
@@ -136,6 +147,7 @@ public class UserController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDTO> deleteUser(@PathVariable UUID id) {
+        logger.info("Received request to delete user with ID: {}", id);
         userService.deleteUser(id);
         ResponseDTO response = new ResponseDTO(
                 LocalDateTime.now(),
@@ -144,6 +156,7 @@ public class UserController {
                 "User with ID " + id + " deleted successfully.",
                 "/api/users/" + id
         );
+        logger.info("User with ID: {} deleted successfully. Returning response.", id);
         return ResponseEntity.ok(response);
     }
 
@@ -163,6 +176,7 @@ public class UserController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/deactivate")
     public ResponseEntity<ResponseDTO> deactivateUser(@PathVariable UUID id) {
+        logger.info("Received request to deactivate user with ID: {}", id);
         userService.deactivateUser(id);
         ResponseDTO response = new ResponseDTO(
                 LocalDateTime.now(),
@@ -171,6 +185,7 @@ public class UserController {
                 "User with ID " + id + " deactivated successfully.",
                 "/api/users/" + id + "/deactivate"
         );
+        logger.info("User with ID: {} deactivated successfully. Returning response.", id);
         return ResponseEntity.ok(response);
     }
 
@@ -190,6 +205,7 @@ public class UserController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/activate")
     public ResponseEntity<ResponseDTO> activateUser(@PathVariable UUID id) {
+        logger.info("Received request to activate user with ID: {}", id);
         userService.activateUser(id);
         ResponseDTO response = new ResponseDTO(
                 LocalDateTime.now(),
@@ -198,6 +214,7 @@ public class UserController {
                 "User with ID " + id + " activated successfully.",
                 "/api/users/" + id + "/activate"
         );
+        logger.info("User with ID: {} activated successfully. Returning response.", id);
         return ResponseEntity.ok(response);
     }
 
@@ -220,7 +237,9 @@ public class UserController {
     @GetMapping("/internal/auth-data/{email}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public ResponseEntity<UserAuthDTO> getUserAuthDataByEmail(@PathVariable String email) {
+        logger.info("Received request to get user authentication data by email: {}", email);
         UserAuthDTO userAuthDTO = userService.getUserAuthDataByEmail(email);
+        logger.debug("Returning user authentication data for email: {}", email);
         return ResponseEntity.ok(userAuthDTO);
     }
 }

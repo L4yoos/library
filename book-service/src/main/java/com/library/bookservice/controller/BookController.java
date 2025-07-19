@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +27,8 @@ import java.util.UUID;
 @Tag(name = "Book Management", description = "API for managing books")
 public class BookController {
 
+    private static final Logger logger = LoggerFactory.getLogger(BookController.class);
+
     private final BookService bookService;
 
     @Operation(summary = "Get all books", description = "Retrieves a list of all existing books.")
@@ -34,7 +38,9 @@ public class BookController {
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred")
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
+        logger.info("Received request to get all books.");
         List<Book> books = bookService.getAllBooks();
+        logger.debug("Returning {} books.", books.size());
         return ResponseEntity.ok(books);
     }
 
@@ -52,7 +58,9 @@ public class BookController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public ResponseEntity<Book> getBookById(@PathVariable UUID id) {
+        logger.info("Received request to get book by ID: {}", id);
         Book book = bookService.getBookById(id);
+        logger.debug("Returning book with ID: {}", id);
         return ResponseEntity.ok(book);
     }
 
@@ -69,7 +77,9 @@ public class BookController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<Book> getBookByIsbn(@PathVariable String isbn) {
+        logger.info("Received request to get book by ISBN: {}", isbn);
         Book book = bookService.getBookByIsbn(isbn);
+        logger.debug("Returning book with ISBN: {}", isbn);
         return ResponseEntity.ok(book);
     }
 
@@ -85,7 +95,9 @@ public class BookController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PostMapping
     public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
+        logger.info("Received request to create book: {}", book.getTitle());
         Book createdBook = bookService.createBook(book);
+        logger.info("Book created successfully with ID: {}", createdBook.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
     }
 
@@ -105,7 +117,9 @@ public class BookController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}")
     public ResponseEntity<Book> updateBook(@PathVariable UUID id, @Valid @RequestBody Book bookDetails) {
+        logger.info("Received request to update book with ID: {}", id);
         Book updatedBook = bookService.updateBook(id, bookDetails);
+        logger.info("Book with ID {} updated successfully.", id);
         return ResponseEntity.ok(updatedBook);
     }
 
@@ -120,7 +134,9 @@ public class BookController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable UUID id) {
+        logger.info("Received request to delete book with ID: {}", id);
         bookService.deleteBook(id);
+        logger.info("Book with ID {} deleted successfully.", id);
         return ResponseEntity.noContent().build();
     }
 
@@ -131,14 +147,16 @@ public class BookController {
     @ApiResponse(responseCode = "200", description = "Book quantity increased successfully",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Book.class)))
     @ApiResponse(responseCode = "400", description = "Invalid count provided (<= 0) or other bad request.",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class))) // Zakładam istnienie ResponseDTO
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Book not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/increase-quantity")
     public ResponseEntity<Book> increaseBookQuantity(@PathVariable UUID id, @RequestParam int count) {
+        logger.info("Received request to increase quantity for book ID {} by {}", id, count);
         Book updatedBook = bookService.increaseBookQuantity(id, count);
+        logger.info("Quantity for book ID {} increased successfully.", id);
         return ResponseEntity.ok(updatedBook);
     }
 
@@ -156,7 +174,9 @@ public class BookController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/decrease-quantity")
     public ResponseEntity<Book> decreaseBookQuantity(@PathVariable UUID id, @RequestParam int count) {
+        logger.info("Received request to decrease quantity for book ID {} by {}", id, count);
         Book updatedBook = bookService.decreaseBookQuantity(id, count);
+        logger.info("Quantity for book ID {} decreased successfully.", id);
         return ResponseEntity.ok(updatedBook);
     }
 
@@ -173,7 +193,9 @@ public class BookController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/borrow")
     public ResponseEntity<Book> borrowBook(@PathVariable UUID id) {
+        logger.info("Received request to borrow book with ID: {}", id);
         Book borrowedBook = bookService.borrowBook(id);
+        logger.info("Book with ID {} borrowed successfully.", id);
         return ResponseEntity.ok(borrowedBook);
     }
 
@@ -190,7 +212,9 @@ public class BookController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/return")
     public ResponseEntity<Book> returnBook(@PathVariable UUID id) {
+        logger.info("Received request to return book with ID: {}", id);
         Book returnedBook = bookService.returnBook(id);
+        logger.info("Book with ID {} returned successfully.", id);
         return ResponseEntity.ok(returnedBook);
     }
 }

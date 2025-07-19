@@ -3,6 +3,8 @@ package com.library.userservice.config;
 import com.library.userservice.model.User;
 import com.library.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +15,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserDataLoader implements CommandLineRunner {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserDataLoader.class);
+
     private final UserRepository userRepository;
 
     @Override
     public void run(String... args) throws Exception {
         if (userRepository.count() == 0) {
-            System.out.println("Loading sample user data into the database....");
+            logger.info("Loading sample user data into the database....");
 
             User user1 = new User(
                     "Jan", "Kowalski", "$2a$10$TUTfSOFx.PFPuI7hQyVAOOBTsdIICeNRlmKmus58E47aQMWuVG8ke", "jan.kowalski@example.com", "123456789", "Warszawska 1, Warszawa"
@@ -34,9 +38,9 @@ public class UserDataLoader implements CommandLineRunner {
 
             List<User> users = Arrays.asList(user1, user2, user3);
             userRepository.saveAll(users);
-            System.out.println("Loading of sample user data has been completed.");
+            logger.info("Loading of sample user data has been completed. {} users loaded.", users.size());
         } else {
-            System.out.println("The user database already contains records. I omit loading the start-up data.");
+            logger.info("The user database already contains records. Omitting loading the start-up data.");
         }
     }
 }

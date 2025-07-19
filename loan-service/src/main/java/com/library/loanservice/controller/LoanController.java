@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,8 @@ import java.util.UUID;
 @Tag(name = "Loan Management", description = "API for managing loan")
 public class LoanController {
 
+    private static final Logger logger = LoggerFactory.getLogger(LoanController.class);
+
     private final LoanService loanService;
 
     @Operation(summary = "Get all loans", description = "Retrieves a list of all existing loans.")
@@ -32,7 +36,9 @@ public class LoanController {
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred")
     @GetMapping
     public ResponseEntity<List<Loan>> getAllLoans() {
+        logger.info("Received request to get all loans.");
         List<Loan> loans = loanService.getAllLoans();
+        logger.debug("Returning {} loans.", loans.size());
         return ResponseEntity.ok(loans);
     }
 
@@ -49,7 +55,9 @@ public class LoanController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/{id}")
     public ResponseEntity<Loan> getLoanById(@PathVariable UUID id) {
+        logger.info("Received request to get loan by ID: {}", id);
         Loan loan = loanService.getLoanById(id);
+        logger.debug("Returning loan with ID: {}", id);
         return ResponseEntity.ok(loan);
     }
 
@@ -66,7 +74,9 @@ public class LoanController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Loan>> getLoansByUserId(@PathVariable UUID userId) {
+        logger.info("Received request to get loans by user ID: {}", userId);
         List<Loan> loans = loanService.getLoansByUserId(userId);
+        logger.debug("Returning {} loans for user ID: {}", loans.size(), userId);
         return ResponseEntity.ok(loans);
     }
 
@@ -85,7 +95,9 @@ public class LoanController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/book/{bookId}")
     public ResponseEntity<List<Loan>> getLoansByBookId(@PathVariable UUID bookId) {
+        logger.info("Received request to get loans by book ID: {}", bookId);
         List<Loan> loans = loanService.getLoansByBookId(bookId);
+        logger.debug("Returning {} loans for book ID: {}", loans.size(), bookId);
         return ResponseEntity.ok(loans);
     }
 
@@ -114,7 +126,9 @@ public class LoanController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PostMapping("/borrow")
     public ResponseEntity<Loan> borrowBook(@RequestParam UUID userId, @RequestParam UUID bookId) {
+        logger.info("Received request to borrow book with ID: {} by user ID: {}", bookId, userId);
         Loan newLoan = loanService.borrowBook(userId, bookId);
+        logger.info("Book with ID: {} successfully borrowed by user ID: {}. New loan ID: {}", bookId, userId, newLoan.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(newLoan);
     }
 
@@ -142,7 +156,9 @@ public class LoanController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{loanId}/return")
     public ResponseEntity<Loan> returnBook(@PathVariable UUID loanId) {
+        logger.info("Received request to return loan with ID: {}", loanId);
         Loan returnedLoan = loanService.returnBook(loanId);
+        logger.info("Loan with ID: {} successfully returned.", loanId);
         return ResponseEntity.ok(returnedLoan);
     }
 }
