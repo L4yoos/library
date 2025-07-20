@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -21,6 +23,7 @@ public class UserResponseDTO {
     private String address;
     private LocalDate registrationDate;
     private boolean active;
+    private Set<String> roles;
 
     public UserResponseDTO(User user) {
         this.id = user.getId();
@@ -32,5 +35,6 @@ public class UserResponseDTO {
         this.address = user.getAddress();
         this.registrationDate = user.getRegistrationDate();
         this.active = user.isActive();
+        this.roles = user.getRoles().stream().map(Enum::name).collect(Collectors.toSet());
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.library.common.exception.UserNotFoundException;
 import com.library.userservice.dto.UserResponseDTO;
 import com.library.userservice.model.User;
+import com.library.userservice.model.enums.Role;
 import com.library.userservice.model.valueobjects.*;
 import com.library.userservice.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,9 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -64,6 +63,9 @@ class UserControllerTest {
         user.setId(userId);
         user.setRegistrationDate(LocalDate.now());
         user.setActive(true);
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.ROLE_USER);
+        user.setRoles(roles);
 
         userResponseDTO = new UserResponseDTO(user);
     }
@@ -139,7 +141,10 @@ class UserControllerTest {
     void updateUser_shouldUpdateUserSuccessfully() throws Exception {
         User updatedDetailsRequest = new User("Updated", "Name", "$2a$10$TUTfSOFx.PFPuI7hQyVAOOBTsdIICeNRlmKmus58E47aQMWuVG8ke", "john.doe@example.com", "123456789", "123 Main St Updated");
 
-        User updatedUserResult = new User(userId, new FirstName("Updated"), new LastName("Name"), new Password("password123"), new EmailAddress("john.doe@example.com"), new PhoneNumber("123456789"), "123 Main St Updated", user.getRegistrationDate(), true);
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.ROLE_USER);
+
+        User updatedUserResult = new User(userId, new FirstName("Updated"), new LastName("Name"), new Password("password123"), new EmailAddress("john.doe@example.com"), new PhoneNumber("123456789"), "123 Main St Updated", user.getRegistrationDate(), true, roles);
         when(userService.updateUser(eq(userId), any(User.class))).thenReturn(updatedUserResult);
 
         mockMvc.perform(put("/api/users/{id}", userId)

@@ -1,5 +1,6 @@
 package com.library.userservice.model;
 
+import com.library.userservice.model.enums.Role;
 import com.library.userservice.model.valueobjects.*;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
@@ -9,6 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -65,7 +68,11 @@ public class User {
 
     private boolean active;
 
-    //TODO roles
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role_name")
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles = new HashSet<>();
 
     public User(String firstNameValue, String lastNameValue, String passwordHash,
                 String emailValue, String phoneNumberValue, String address) {
@@ -76,6 +83,7 @@ public class User {
         this.email = new EmailAddress(emailValue);
         this.phoneNumber = new PhoneNumber(phoneNumberValue);
         this.address = address;
+        this.roles.add(Role.ROLE_USER);
     }
 
     @PrePersist
@@ -84,5 +92,8 @@ public class User {
             registrationDate = LocalDate.now();
         }
         this.active = true;
+        if (this.roles.isEmpty()) {
+            this.roles.add(Role.ROLE_USER);
+        }
     }
 }

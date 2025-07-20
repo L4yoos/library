@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -145,7 +146,10 @@ public class UserServiceImpl implements UserService {
                             user.getFirstName().getValue(),
                             user.getLastName().getValue(),
                             user.getEmail().getValue(),
-                            user.getPassword().getValue()
+                            user.getPassword().getValue(),
+                            user.getRoles().stream()
+                                    .map(Enum::name)
+                                    .collect(Collectors.toSet())
                     );
                 })
                 .orElseThrow(() -> {

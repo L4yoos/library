@@ -44,6 +44,7 @@ public class UserController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred")
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('EDITOR')")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         logger.info("Received request to get all users.");
         List<User> users = userService.getAllUsers();
@@ -72,7 +73,7 @@ public class UserController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE') or #id == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> getUserById(
             @PathVariable UUID id) {
         logger.info("Received request to get user by ID: {}", id);
@@ -98,7 +99,7 @@ public class UserController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PostMapping
-    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE') or hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody User user) {
         logger.info("Received request to create user with email: {}", user.getEmail().getValue());
         User createdUser = userService.createUser(user);
@@ -124,6 +125,7 @@ public class UserController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody User userDetails) {
         logger.info("Received request to update user with ID: {}", id);
         User updatedUser = userService.updateUser(id, userDetails);
@@ -146,6 +148,7 @@ public class UserController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseDTO> deleteUser(@PathVariable UUID id) {
         logger.info("Received request to delete user with ID: {}", id);
         userService.deleteUser(id);
@@ -175,6 +178,7 @@ public class UserController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseDTO> deactivateUser(@PathVariable UUID id) {
         logger.info("Received request to deactivate user with ID: {}", id);
         userService.deactivateUser(id);
@@ -204,6 +208,7 @@ public class UserController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseDTO> activateUser(@PathVariable UUID id) {
         logger.info("Received request to activate user with ID: {}", id);
         userService.activateUser(id);
