@@ -19,11 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -50,6 +46,7 @@ class LoanServiceImplTest {
     private Loan loan;
     private UserDTO userDTO;
     private BookDTO bookDTO;
+    private Set<String> roles;
 
     @BeforeEach
     void setUp() {
@@ -64,7 +61,9 @@ class LoanServiceImplTest {
         loan.setLoanDate(LocalDate.now());
         loan.setStatus(LoanStatus.BORROWED);
 
-        userDTO = new UserDTO(userId, "John", "Doe", "john.doe@example.com", "123456789", "Gdańsk, Gdańska 9", LocalDate.now(), true);
+        roles = Collections.singleton("ROLE_USER");
+
+        userDTO = new UserDTO(userId, "John", "Doe", "john.doe@example.com", "123456789", "Gdańsk, Gdańska 9", LocalDate.now(), true, roles);
         bookDTO = new BookDTO(bookId, "Test Title", "Test Author", "1234567890", 2000, "Publisher", "Genre", new BookDTO.Stock(5, 3));
     }
 

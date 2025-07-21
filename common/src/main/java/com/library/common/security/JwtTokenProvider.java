@@ -40,6 +40,16 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public String generateTokenForTest(CustomUserDetails userDetails) {
+        return Jwts.builder()
+                .setSubject((userDetails.getUsername()))
+                .claim("userId", userDetails.getId().toString())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
     public String getUserEmailFromJwtToken(String token) {
         return Jwts.parserBuilder().setSigningKey(getSigningKey()).build()
                 .parseClaimsJws(token).getBody().getSubject();

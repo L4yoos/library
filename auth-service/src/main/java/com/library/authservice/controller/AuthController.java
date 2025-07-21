@@ -79,7 +79,7 @@ public class AuthController {
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true);
         jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(360000);
+        jwtCookie.setMaxAge(3600000);
 
         response.addCookie(jwtCookie);
         logger.info("User with email {} logged in successfully. JWT token set in cookie and returned.", loginRequest.getEmail());

@@ -94,7 +94,6 @@ public class LoanServiceImpl implements LoanService {
         }
         logger.debug("Book found: {}", book.getId());
 
-
         Optional<Loan> activeLoan = loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, LoanStatus.BORROWED);
         if (activeLoan.isPresent()) {
             logger.warn("Book with ID: {} is already borrowed by user with ID: {}.", bookId, userId);
@@ -147,14 +146,12 @@ public class LoanServiceImpl implements LoanService {
                 });
         logger.debug("Loan found: {}", loan.getId());
 
-
         UserDTO user = restClientService.getUserById(loan.getUserId());
         if (user == null) {
             logger.error("User with ID: {} associated with loan {} not found.", loan.getUserId(), loanId);
             throw new UserNotFoundException(loan.getUserId());
         }
         logger.debug("User associated with loan found: {}", user.getId());
-
 
         BookDTO book = restClientService.getBookById(loan.getBookId());
         if (book == null) {

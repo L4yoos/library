@@ -1,9 +1,11 @@
 package com.library.loanservice.exception;
 
 import com.library.common.dto.ResponseDTO;
+import com.library.common.exception.AccessForbiddenException;
 import com.library.common.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalLoanExceptionHandler {
 
     @ExceptionHandler({
             UserNotFoundException.class,
@@ -32,6 +34,35 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(AccessForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<ResponseDTO> handleAccessForbiddenException(
+            AccessForbiddenException ex, HttpServletRequest request) {
+
+        ResponseDTO errorResponse = new ResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                ex.getMessage() != null ? ex.getMessage() : "Access to this resource is forbidden.",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<ResponseDTO> handleAuthorizationDeniedException(
+            AuthorizationDeniedException ex, HttpServletRequest request) {
+        ResponseDTO errorResponse = new ResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                ex.getMessage() != null ? ex.getMessage() : "Access denied. You do not have sufficient permissions.",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler({

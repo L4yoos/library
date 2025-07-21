@@ -44,7 +44,7 @@ public class UserController {
                     schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred")
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('EDITOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         logger.info("Received request to get all users.");
         List<User> users = userService.getAllUsers();

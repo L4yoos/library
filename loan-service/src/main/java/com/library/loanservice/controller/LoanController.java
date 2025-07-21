@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,8 +34,14 @@ public class LoanController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved list of loans",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = Loan.class)))
-    @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred")
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public ResponseEntity<List<Loan>> getAllLoans() {
         logger.info("Received request to get all loans.");
         List<Loan> loans = loanService.getAllLoans();
@@ -47,6 +54,12 @@ public class LoanController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved loan",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = Loan.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires ADMIN/EDITOR role or ownership)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Loan not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -54,6 +67,7 @@ public class LoanController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR') or (hasRole('USER') and @loanService.getLoanById(#id)?.userId == authentication.principal.id)")
     public ResponseEntity<Loan> getLoanById(@PathVariable UUID id) {
         logger.info("Received request to get loan by ID: {}", id);
         Loan loan = loanService.getLoanById(id);
@@ -66,6 +80,12 @@ public class LoanController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved list of loans",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = Loan.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires USER role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Loans for the specified user ID not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -73,6 +93,7 @@ public class LoanController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR') or (hasRole('USER') and #userId == authentication.principal.id)")
     public ResponseEntity<List<Loan>> getLoansByUserId(@PathVariable UUID userId) {
         logger.info("Received request to get loans by user ID: {}", userId);
         List<Loan> loans = loanService.getLoansByUserId(userId);
@@ -87,6 +108,12 @@ public class LoanController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved list of loans",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = Loan.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires USER role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Loans for the specified book ID not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -94,6 +121,7 @@ public class LoanController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/book/{bookId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public ResponseEntity<List<Loan>> getLoansByBookId(@PathVariable UUID bookId) {
         logger.info("Received request to get loans by book ID: {}", bookId);
         List<Loan> loans = loanService.getLoansByBookId(bookId);
@@ -112,6 +140,12 @@ public class LoanController {
     @ApiResponse(responseCode = "400", description = "Invalid request parameters (e.g., malformed UUIDs)",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires USER role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "User or Book not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -125,6 +159,7 @@ public class LoanController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PostMapping("/borrow")
+    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.id")
     public ResponseEntity<Loan> borrowBook(@RequestParam UUID userId, @RequestParam UUID bookId) {
         logger.info("Received request to borrow book with ID: {} by user ID: {}", bookId, userId);
         Loan newLoan = loanService.borrowBook(userId, bookId);
@@ -142,6 +177,12 @@ public class LoanController {
     @ApiResponse(responseCode = "400", description = "Invalid request parameters (e.g., malformed UUID)",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires USER role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Loan not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -155,6 +196,7 @@ public class LoanController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{loanId}/return")
+    @PreAuthorize("hasRole('USER') and @loanService.getLoanById(#loanId)?.userId == authentication.principal.id")
     public ResponseEntity<Loan> returnBook(@PathVariable UUID loanId) {
         logger.info("Received request to return loan with ID: {}", loanId);
         Loan returnedLoan = loanService.returnBook(loanId);

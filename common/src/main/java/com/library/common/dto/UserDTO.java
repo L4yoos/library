@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -20,4 +21,5 @@ public class UserDTO implements Serializable {
     private String address;
     private LocalDate registrationDate;
     private boolean active;
+    private Set<String> roles;
 }

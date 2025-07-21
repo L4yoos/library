@@ -23,12 +23,19 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Value("${user-service.url}")
     private String userServiceInternalAuthUrl;
 
+    @Value("${internal.api-key.header-name}")
+    private String apiKeyHeaderName;
+
+    @Value("${internal.api-key.value}")
+    private String apiKeyValue;
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UserNotFoundException {
         try {
             logger.info("Attempting to fetch user authentication data for email: {}", email);
             UserAuthDTO userAuthDTO = webClient.get()
                     .uri(userServiceInternalAuthUrl + "/internal/auth-data/" + email)
+                    .header(apiKeyHeaderName, apiKeyValue)
                     .retrieve()
                     .bodyToMono(UserAuthDTO.class)
                     .block();

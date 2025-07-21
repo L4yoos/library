@@ -1,5 +1,6 @@
 package com.library.loanservice.config;
 
+import com.library.common.security.CustomUserDetailsService;
 import com.library.common.security.filter.AuthTokenFilter;
 import com.library.common.security.JwtTokenProvider;
 import com.library.common.security.handler.CommonAccessDeniedHandler;
@@ -11,13 +12,14 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,8 +27,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -56,17 +56,28 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsServiceForAuthTokenFilter() {
-        return username -> {
-            return new User(username, "", Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
-        };
+    public UserDetailsService userDetailsService(CustomUserDetailsService customUserDetailsService) {
+        return customUserDetailsService;
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder);
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
     }
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter(
             JwtTokenProvider jwtTokenProvider,
-            UserDetailsService userDetailsServiceForAuthTokenFilter) {
-        return new AuthTokenFilter(jwtTokenProvider, userDetailsServiceForAuthTokenFilter);
+            UserDetailsService userDetailsService) {
+        return new AuthTokenFilter(jwtTokenProvider, userDetailsService);
     }
 
     @Bean
@@ -92,7 +103,8 @@ public class SecurityConfig {
             HttpSecurity http,
             AuthTokenFilter authenticationJwtTokenFilter,
             AuthenticationEntryPoint jwtAuthenticationEntryPoint,
-            AccessDeniedHandler jwtAccessDeniedHandler
+            AccessDeniedHandler jwtAccessDeniedHandler,
+            DaoAuthenticationProvider authenticationProvider
     ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -101,6 +113,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 );
+
+        http.authenticationProvider(authenticationProvider);
 
         http.securityMatcher("/**")
                 .authorizeHttpRequests(auth -> auth

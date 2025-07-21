@@ -2,11 +2,12 @@ package com.library.userservice.exception;
 
 import com.library.common.dto.ResponseDTO;
 import com.library.common.exception.AccessForbiddenException;
+import com.library.common.exception.InvalidAuthenticationException;
 import com.library.common.exception.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AuthorizationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @ControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalUserExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -74,6 +75,37 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return new ResponseEntity<>(errorResponse, status);
+    }
+
+
+    @ExceptionHandler(InvalidAuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ResponseDTO> handleInvalidAuthenticationException(
+            InvalidAuthenticationException ex, HttpServletRequest request) {
+
+        ResponseDTO errorResponse = new ResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                ex.getMessage() != null ? ex.getMessage() : "Authentication failed due to invalid credentials or token.",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ResponseDTO> handleBadCredentialsException(
+            BadCredentialsException ex, HttpServletRequest request) {
+
+        ResponseDTO errorResponse = new ResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                ex.getMessage() != null ? ex.getMessage() : "Invalid or expired JWT token provided.",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(AccessForbiddenException.class)

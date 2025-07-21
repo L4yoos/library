@@ -7,9 +7,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Getter
 public class CustomUserDetails implements UserDetails {
@@ -31,12 +31,9 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public static CustomUserDetails build(UserAuthDTO userAuthDTO) {
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-        /*
-        List<GrantedAuthority> authorities = userDTO.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
+        List<GrantedAuthority> authorities = userAuthDTO.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role))
                 .collect(Collectors.toList());
-        */
         return new CustomUserDetails(
                 userAuthDTO.getId(),
                 userAuthDTO.getFirstname(),

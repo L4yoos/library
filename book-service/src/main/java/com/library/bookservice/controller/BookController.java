@@ -35,8 +35,14 @@ public class BookController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved list of books",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = Book.class)))
-    @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred")
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Book>> getAllBooks() {
         logger.info("Received request to get all books.");
         List<Book> books = bookService.getAllBooks();
@@ -49,6 +55,12 @@ public class BookController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved book",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = Book.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires INTERNAL_SERVICE, ADMIN or EDITOR role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Book not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -56,7 +68,7 @@ public class BookController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE') or hasAnyRole('ADMIN', 'EDITOR')")
     public ResponseEntity<Book> getBookById(@PathVariable UUID id) {
         logger.info("Received request to get book by ID: {}", id);
         Book book = bookService.getBookById(id);
@@ -69,6 +81,9 @@ public class BookController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved book",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = Book.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Book not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -76,6 +91,7 @@ public class BookController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @GetMapping("/isbn/{isbn}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Book> getBookByIsbn(@PathVariable String isbn) {
         logger.info("Received request to get book by ISBN: {}", isbn);
         Book book = bookService.getBookByIsbn(isbn);
@@ -90,10 +106,17 @@ public class BookController {
     @ApiResponse(responseCode = "400", description = "Invalid book data provided",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires ADMIN or EDITOR role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error - An unexpected error occurred",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
         logger.info("Received request to create book: {}", book.getTitle());
         Book createdBook = bookService.createBook(book);
@@ -109,6 +132,12 @@ public class BookController {
     @ApiResponse(responseCode = "400", description = "Invalid book data provided (e.g., validation errors)",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires ADMIN or EDITOR role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Book not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -116,6 +145,7 @@ public class BookController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public ResponseEntity<Book> updateBook(@PathVariable UUID id, @Valid @RequestBody Book bookDetails) {
         logger.info("Received request to update book with ID: {}", id);
         Book updatedBook = bookService.updateBook(id, bookDetails);
@@ -126,6 +156,12 @@ public class BookController {
     @Operation(summary = "Delete a book", description = "Deletes a book from the system by their unique ID.")
     @Parameter(description = "Unique ID of the book to delete", required = true, example = "a1b2c3d4-e5f6-7890-1234-567890abcdef")
     @ApiResponse(responseCode = "204", description = "Book deleted successfully (No Content)")
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires ADMIN or EDITOR role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Book not found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
@@ -133,6 +169,7 @@ public class BookController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ResponseDTO.class)))
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteBook(@PathVariable UUID id) {
         logger.info("Received request to delete book with ID: {}", id);
         bookService.deleteBook(id);
@@ -148,11 +185,18 @@ public class BookController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Book.class)))
     @ApiResponse(responseCode = "400", description = "Invalid count provided (<= 0) or other bad request.",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires ADMIN or EDITOR role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Book not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/increase-quantity")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public ResponseEntity<Book> increaseBookQuantity(@PathVariable UUID id, @RequestParam int count) {
         logger.info("Received request to increase quantity for book ID {} by {}", id, count);
         Book updatedBook = bookService.increaseBookQuantity(id, count);
@@ -168,11 +212,18 @@ public class BookController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Book.class)))
     @ApiResponse(responseCode = "400", description = "Invalid count provided (<= 0) or insufficient stock.",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Forbidden - Insufficient permissions (requires ADMIN or EDITOR role)",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Book not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/decrease-quantity")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public ResponseEntity<Book> decreaseBookQuantity(@PathVariable UUID id, @RequestParam int count) {
         logger.info("Received request to decrease quantity for book ID {} by {}", id, count);
         Book updatedBook = bookService.decreaseBookQuantity(id, count);
@@ -187,11 +238,15 @@ public class BookController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Book.class)))
     @ApiResponse(responseCode = "400", description = "No available copies to borrow",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Book not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/borrow")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Book> borrowBook(@PathVariable UUID id) {
         logger.info("Received request to borrow book with ID: {}", id);
         Book borrowedBook = bookService.borrowBook(id);
@@ -206,11 +261,15 @@ public class BookController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Book.class)))
     @ApiResponse(responseCode = "400", description = "Book cannot be returned (e.g., already all available)",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required or token invalid",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "404", description = "Book not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDTO.class)))
     @PutMapping("/{id}/return")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Book> returnBook(@PathVariable UUID id) {
         logger.info("Received request to return book with ID: {}", id);
         Book returnedBook = bookService.returnBook(id);
