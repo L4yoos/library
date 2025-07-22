@@ -26,18 +26,20 @@
 
 <hr/>
 
----
-
 <h2 align="left" id="built-with">📦 Built With</h2>
 <p align="left">This project uses the following technologies:</p>
 <div align="left">
+  <img src="https://img.shields.io/badge/Java 17-007396?logo=java&logoColor=white&style=for-the-badge" height="30" alt="Java logo" />
+  <img width="12" />
   <img src="https://img.shields.io/badge/Spring_Boot-6DB33F?logo=spring-boot&logoColor=white&style=for-the-badge" height="30" alt="Spring Boot logo" />
   <img width="12" />
-  <img src="https://img.shields.io/badge/Maven-C71A36?logo=apache-maven&logoColor=white&style=for-the-badge" height="30" alt="Maven logo" />
+  <img src="https://img.shields.io/badge/Spring_Data_JPA-6DB33F?logo=spring&logoColor=white&style=for-the-badge" height="30" alt="Spring Data JPA logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/Spring_WebFlux-6DB33F?logo=spring&logoColor=white&style=for-the-badge" height="30" alt="Spring WebFlux logo" />
   <img width="12" />
   <img src="https://img.shields.io/badge/Lombok-A01083?logo=lombok&logoColor=white&style=for-the-badge" height="30" alt="Lombok logo" />
   <img width="12" />
-  <img src="https://img.shields.io/badge/Apache_Kafka-231F20?logo=apachekafka&logoColor=white&style=for-the-badge" height="30" alt="Kafka logo" />
+  <img src="https://img.shields.io/badge/Apache_Kafka-231F20?logo=apachekafka&logoColor=white&style=for-the-badge" height="30" alt="Apache Kafka logo" />
   <img width="12" />
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white&style=for-the-badge" height="30" alt="PostgreSQL logo" />
   <img width="12" />
@@ -53,8 +55,6 @@
   <img width="12" />
   <img src="https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white&style=for-the-badge" height="30" alt="Kubernetes logo" />
 </div>
-
-<hr/>
 
 <hr/>
 
@@ -97,16 +97,28 @@
 <hr/>
 
 <h2 align="left" id="usage">🚀 Usage</h2>
-<p align="left">Each service has its own usage instructions, which can be found in the respective service's README.</p>
+<p align="left">To use the project, you need to start each service and then use the RESTful APIs to interact with the services.</p>
+<ul align="left">
+  <li>Book Service: `http://localhost:8880/books`</li>
+  <li>User Service: `http://localhost:8881/users`</li>
+  <li>Loan Service: `http://localhost:8882/loans`</li>
+  <li>Auth Service: `http://localhost:8884/auth`</li>
+</ul>
 
 <hr/>
 
+<h2 align="left" id="testing">🚀 Postman</h2>
+<p align="left">
+    <a href="https://www.postman.com/l4yoosek/workspace/library/collection/29730936-e8bd00f8-03b1-4a71-9fd8-8daeb8fb8680?action=share&creator=29730936"> Collection with API</a>
+</p>
+
+
 <h2 align="left" id="testing">🧪 Testing</h2>
-<p align="left">This project uses JUnit and Mockito for testing. Refer to the individual service documentation for testing details.</p>
+<p align="left">The project includes test files for each service.</p>
 
 <hr/>
 
 <h2 align="left" id="demo">🎬 Demo</h2>
-<p align="left">To be added.</p>
+<p align="left">A demo of the project is not available.</p>
 
 > 📝 **Note**: Replace {user} and {project} in the badge URLs with your actual GitHub username and repository name.
