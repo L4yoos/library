@@ -39,6 +39,28 @@ spec:
                   key: POSTGRES_PASSWORD
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: "update"
+            - name: USER_SERVICE_URL
+              value: "http://user-service:8881/api/users"
+            - name: INTERNAL_API_KEY_HEADER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: internal-api-key-secret
+                  key: INTERNAL_API_KEY_HEADER_NAME
+            - name: INTERNAL_API_KEY_VALUE
+              valueFrom:
+                secretKeyRef:
+                  name: internal-api-key-secret
+                  key: INTERNAL_API_KEY_VALUE
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_SECRET
+            - name: JWT_EXPIRATION_MS
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_EXPIRATION_MS
           resources:
             requests:
               memory: "256Mi"
