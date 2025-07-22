@@ -26,21 +26,35 @@
 
 <hr/>
 
+---
+
 <h2 align="left" id="built-with">📦 Built With</h2>
 <p align="left">This project uses the following technologies:</p>
-<ul align="left">
-  <li>Spring Boot</li>
-  <li>Maven</li>
-  <li>Lombok</li>
-  <li>Kafka</li>
-  <li>PostgreSQL</li>
-  <li>JUnit</li>
-  <li>Mockito</li>
-  <li>CI/CD (GitHub Actions)</li>
-  <li>Docker</li>
-  <li>Swagger (OpenAPI)</li>
-  <li>Kubernetes</li>
-</ul>
+<div align="left">
+  <img src="https://img.shields.io/badge/Spring_Boot-6DB33F?logo=spring-boot&logoColor=white&style=for-the-badge" height="30" alt="Spring Boot logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/Maven-C71A36?logo=apache-maven&logoColor=white&style=for-the-badge" height="30" alt="Maven logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/Lombok-A01083?logo=lombok&logoColor=white&style=for-the-badge" height="30" alt="Lombok logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/Apache_Kafka-231F20?logo=apachekafka&logoColor=white&style=for-the-badge" height="30" alt="Kafka logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white&style=for-the-badge" height="30" alt="PostgreSQL logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/JUnit5-25A642?logo=junit5&logoColor=white&style=for-the-badge" height="30" alt="JUnit logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/Mockito-3776AB?logo=mockito&logoColor=white&style=for-the-badge" height="30" alt="Mockito logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white&style=for-the-badge" height="30" alt="GitHub Actions logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white&style=for-the-badge" height="30" alt="Docker logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=black&style=for-the-badge" height="30" alt="Swagger logo" />
+  <img width="12" />
+  <img src="https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white&style=for-the-badge" height="30" alt="Kubernetes logo" />
+</div>
+
+<hr/>
 
 <hr/>
 
