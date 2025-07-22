@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,18 +23,16 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user; // Import for .with(user())
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-@WebMvcTest(controllers = LoanController.class) // Removed excludeAutoConfiguration
+@WebMvcTest(controllers = LoanController.class)
 class LoanControllerTest {
 
     @Autowired
@@ -93,46 +90,33 @@ class LoanControllerTest {
                 adminUserId,
                 "Admin",
                 "User",
-                "admin@example.com", // Use email as username for consistency with CustomUserDetailsService
+                "admin@example.com",
                 "password",
                 List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
         );
-        // Mock JWT behavior for Admin
         adminJwtCookie = generateTestJwtCookie(adminUserDetails);
-//        when(jwtTokenProvider.generateTokenForTest(adminUserDetails)).thenReturn(adminToken);
-//        when(jwtTokenProvider.validateToken(adminToken)).thenReturn(true);
-//        when(jwtTokenProvider.getUserEmailFromJwtToken(adminToken)).thenReturn(adminUserDetails.getUsername()); // <-- DODAJ TĘ LINIĘ
 
         editorUserId = UUID.randomUUID();
         editorUserDetails = new CustomUserDetails(
                 editorUserId,
                 "Editor",
                 "User",
-                "editor@example.com", // Use email as username
+                "editor@example.com",
                 "password",
                 List.of(new SimpleGrantedAuthority("ROLE_EDITOR"))
         );
-        // Mock JWT behavior for Editor
         editorJwtCookie = generateTestJwtCookie(editorUserDetails);
-//        String editorToken = "mockEditorJwtToken";
-//        when(jwtTokenProvider.generateTokenForTest(editorUserDetails)).thenReturn(editorToken);
-//        when(jwtTokenProvider.validateToken(editorToken)).thenReturn(true);
-//        editorJwtCookie = new Cookie("token", editorToken);
 
-        janeUserId = sampleUserId; // Assuming sampleUserId is the ID for Jane
+        janeUserId = sampleUserId;
         janeUserDetails = new CustomUserDetails(
                 janeUserId,
                 "Jane",
                 "Doe",
-                "jane@example.com", // Use email as username
+                "jane@example.com",
                 "password",
                 List.of(new SimpleGrantedAuthority("ROLE_USER"))
         );
-        // Mock JWT behavior for Jane
-//        String janeToken = "mockJaneJwtToken";
-//        when(jwtTokenProvider.generateTokenForTest(janeUserDetails)).thenReturn(janeToken);
-//        when(jwtTokenProvider.validateToken(janeToken)).thenReturn(true);
-//        janeJwtCookie = new Cookie("token", janeToken);
+
         janeJwtCookie = generateTestJwtCookie(janeUserDetails);
 
         otherUserId = UUID.randomUUID();
@@ -140,21 +124,16 @@ class LoanControllerTest {
                 otherUserId,
                 "Other",
                 "User",
-                "other@example.com", // Use email as username
+                "other@example.com",
                 "password",
                 List.of(new SimpleGrantedAuthority("ROLE_USER"))
         );
-//        // Mock JWT behavior for Other User
-//        String otherUserToken = "mockOtherUserJwtToken";
-//        when(jwtTokenProvider.generateTokenForTest(otherUserDetails)).thenReturn(otherUserToken);
-//        when(jwtTokenProvider.validateToken(otherUserToken)).thenReturn(true);
-//        otherUserJwtCookie = new Cookie("token", otherUserToken);
+
         otherUserJwtCookie = generateTestJwtCookie(otherUserDetails);
     }
 
     @BeforeEach
     void mockUserDetailsService() {
-        // Mocking userDetailsService to return CustomUserDetails for the expected usernames (emails)
         when(userDetailsService.loadUserByUsername("admin@example.com"))
                 .thenReturn(adminUserDetails);
         when(userDetailsService.loadUserByUsername("editor@example.com"))
@@ -176,7 +155,7 @@ class LoanControllerTest {
         when(loanService.getAllLoans()).thenReturn(Arrays.asList(sampleLoan));
 
         mockMvc.perform(get("/api/loans")
-                        .with(user(adminUserDetails)) // Use .with(user()) to set principal for @PreAuthorize
+                        .with(user(adminUserDetails))
                         .cookie(adminJwtCookie)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -194,7 +173,7 @@ class LoanControllerTest {
         when(loanService.getAllLoans()).thenReturn(Arrays.asList(sampleLoan));
 
         mockMvc.perform(get("/api/loans")
-                        .with(user(editorUserDetails)) // Use .with(user())
+                        .with(user(editorUserDetails))
                         .cookie(editorJwtCookie)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -210,7 +189,7 @@ class LoanControllerTest {
     @DisplayName("GET /api/loans should return 403 Forbidden for USER")
     void getAllLoans_shouldReturnForbidden_asUser() throws Exception {
         mockMvc.perform(get("/api/loans")
-                        .with(user(janeUserDetails)) // Use .with(user())
+                        .with(user(janeUserDetails))
                         .cookie(janeJwtCookie)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -224,7 +203,7 @@ class LoanControllerTest {
         when(loanService.getLoanById(sampleLoanId)).thenReturn(sampleLoan);
 
         mockMvc.perform(get("/api/loans/{id}", sampleLoanId)
-                        .with(user(adminUserDetails)) // Use .with(user())
+                        .with(user(adminUserDetails))
                         .cookie(adminJwtCookie)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())

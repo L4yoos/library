@@ -8,7 +8,9 @@ FROM openjdk:17-jdk-slim AS loan-service-builder
 LABEL authors="l4yoos"
 WORKDIR /app
 COPY --from=common-builder /root/.m2 /root/.m2
-COPY --from=common-builder /app /app
+
+COPY . /app/
+
 RUN cd loan-service && ./mvnw clean package -B -Dmaven.test.skip=true
 
 FROM openjdk:17-jdk-slim AS loan-service-run

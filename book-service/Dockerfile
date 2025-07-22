@@ -1,20 +1,15 @@
 FROM openjdk:17-jdk-slim AS common-builder
 LABEL authors="l4yoos"
 WORKDIR /app
-
-COPY common/ /app/common/
-
-RUN chmod +x /app/common/mvnw
-
-RUN --mount=type=cache,target=/root/.m2 \
-    cd common && ./mvnw clean install -B -Dmaven.test.skip=true -X && \
-    cp -R /root/.m2 /app/.m2_cache_export
+COPY . /app/
+RUN cd common && ./mvnw clean install -B -Dmaven.test.skip=true -X
 
 FROM openjdk:17-jdk-slim AS book-service-builder
+
 LABEL authors="l4yoos"
 WORKDIR /app
 
-COPY --from=common-builder /app/.m2_cache_export /root/.m2
+COPY --from=common-builder /root/.m2 /root/.m2
 
 COPY . /app/
 

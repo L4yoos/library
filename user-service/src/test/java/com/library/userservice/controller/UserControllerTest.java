@@ -70,7 +70,6 @@ class UserControllerTest {
     private CustomUserDetails annaUserDetails;
     private Set<Role> annaRoles;
 
-
     @BeforeEach
     void setUp() {
         adminUserId = UUID.randomUUID();

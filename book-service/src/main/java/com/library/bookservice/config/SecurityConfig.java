@@ -44,7 +44,7 @@ public class SecurityConfig {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration.ms}")
+    @Value("${jwt.expiration.ms:3600000}")
     private int jwtExpirationMs;
 
     @Bean

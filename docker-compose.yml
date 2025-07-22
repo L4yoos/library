@@ -67,6 +67,8 @@ services:
     depends_on:
       postgres_db:
         condition: service_healthy
+    volumes:
+      - maven_cache:/root/.m2
 
   user-service:
     build:
@@ -85,6 +87,8 @@ services:
     depends_on:
       postgres_db:
         condition: service_healthy
+    volumes:
+      - maven_cache:/root/.m2
 
   loan-service:
     build:
@@ -110,6 +114,8 @@ services:
         condition: service_started
       user-service:
         condition: service_started
+    volumes:
+      - maven_cache:/root/.m2
 
   notification-service:
     build:
@@ -130,6 +136,8 @@ services:
         condition: service_started
       book-service:
         condition: service_started
+    volumes:
+      - maven_cache:/root/.m2
 
   auth-service:
     build:
@@ -147,6 +155,9 @@ services:
     depends_on:
       user-service:
         condition: service_started
+    volumes:
+      - maven_cache:/root/.m2
 
 volumes:
   postgres_data:
+  maven_cache:
