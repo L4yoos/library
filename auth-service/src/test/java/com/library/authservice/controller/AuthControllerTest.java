@@ -1,5 +1,6 @@
 package com.library.authservice.controller;
 
+import com.library.authservice.config.SecurityConfig;
 import com.library.authservice.dto.JwtResponse;
 import com.library.authservice.dto.LoginRequest;
 import com.library.authservice.dto.RegistrationRequest;
@@ -12,25 +13,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = AuthController.class,
-        excludeAutoConfiguration = {
-                org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
-                org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration.class
-        })
+@WebMvcTest(AuthController.class)
+@Import(SecurityConfig.class)
 class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private WebClient webClient;
 
     @MockBean
     private AuthService authService;
@@ -65,6 +69,7 @@ class AuthControllerTest {
         doNothing().when(authService).registerUser(any(RegistrationRequest.class));
 
         mockMvc.perform(post("/api/auth/register")
+                        .with(anonymous())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRegistrationRequest)))
                 .andExpect(status().isCreated())
@@ -83,6 +88,7 @@ class AuthControllerTest {
         invalidRequest.setPassword("short");
 
         mockMvc.perform(post("/api/auth/register")
+                        .with(anonymous())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -100,6 +106,7 @@ class AuthControllerTest {
                 .when(authService).registerUser(any(RegistrationRequest.class));
 
         mockMvc.perform(post("/api/auth/register")
+                        .with(anonymous())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRegistrationRequest)))
                 .andExpect(status().isConflict())
@@ -118,6 +125,7 @@ class AuthControllerTest {
                 .when(authService).registerUser(any(RegistrationRequest.class));
 
         mockMvc.perform(post("/api/auth/register")
+                        .with(anonymous())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRegistrationRequest)))
                 .andExpect(status().isInternalServerError())
@@ -135,6 +143,7 @@ class AuthControllerTest {
         when(authService.authenticateUser(any(LoginRequest.class))).thenReturn(jwtResponse);
 
         mockMvc.perform(post("/api/auth/login")
+                        .with(anonymous())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validLoginRequest)))
                 .andExpect(status().isOk())
@@ -142,7 +151,7 @@ class AuthControllerTest {
                 .andExpect(cookie().exists("token"))
                 .andExpect(cookie().httpOnly("token", true))
                 .andExpect(cookie().secure("token", true))
-                .andExpect(cookie().maxAge("token", 3600))
+                .andExpect(cookie().maxAge("token", 3600000))
                 .andExpect(cookie().path("token", "/"));
 
         verify(authService, times(1)).authenticateUser(any(LoginRequest.class));
@@ -155,6 +164,7 @@ class AuthControllerTest {
         invalidLoginRequest.setEmail("invalid-email");
 
         mockMvc.perform(post("/api/auth/login")
+                        .with(anonymous())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidLoginRequest)))
                 .andExpect(status().isBadRequest())
@@ -172,6 +182,7 @@ class AuthControllerTest {
                 .when(authService).authenticateUser(any(LoginRequest.class));
 
         mockMvc.perform(post("/api/auth/login")
+                        .with(anonymous())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validLoginRequest)))
                 .andExpect(status().isUnauthorized())
@@ -190,6 +201,7 @@ class AuthControllerTest {
                 .when(authService).authenticateUser(any(LoginRequest.class));
 
         mockMvc.perform(post("/api/auth/login")
+                        .with(anonymous())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validLoginRequest)))
                 .andExpect(status().isInternalServerError())
