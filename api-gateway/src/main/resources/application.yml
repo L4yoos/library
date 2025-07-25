@@ -49,3 +49,17 @@ spring:
             - Path=/api/loans/**
           filters:
             - RewritePath=/api/loans/(?<segment>.*), /api/loans/${segment}
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: User Service
+        url: /v3/api-docs/user-service
+      - name: Book Service
+        url: /v3/api-docs/book-service
+      - name: Loan Service
+        url: /v3/api-docs/loan-service
+      - name: Auth Service
+        url: /v3/api-docs/auth-service
+  api-docs:
+    path: /v3/api-docs
