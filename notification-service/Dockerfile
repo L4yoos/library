@@ -1,17 +1,17 @@
-FROM openjdk:17-jdk-slim AS common-builder
+FROM eclipse-temurin:17-jdk-jammy AS common-builder
 LABEL authors="l4yoos"
 WORKDIR /app
 COPY . /app/
 RUN cd common && ./mvnw clean install -B -Dmaven.test.skip=true -X
 
-FROM openjdk:17-jdk-slim AS notification-service-builder
+FROM eclipse-temurin:17-jdk-jammy AS notification-service-builder
 LABEL authors="l4yoos"
 WORKDIR /app
 COPY --from=common-builder /root/.m2 /root/.m2
 COPY . /app/
 RUN cd notification-service && ./mvnw clean package -B -Dmaven.test.skip=true
 
-FROM openjdk:17-jdk-slim AS notification-service-run
+FROM eclipse-temurin:17-jre-jammy AS notification-service-run
 LABEL authors="l4yoos"
 WORKDIR /app
 COPY --from=notification-service-builder /app/notification-service/target/*.jar app.jar
