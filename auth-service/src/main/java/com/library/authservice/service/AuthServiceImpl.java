@@ -30,13 +30,13 @@ public class AuthServiceImpl implements AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
-    private final PasswordEncoder passwordEncoder;
     private final WebClient webClient;
+
+    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @Value("${user-service.url}")
-    private String userServiceUrl;
+    private final static String userServiceUrl = "http://USER-SERVICE/api/users/";
 
     @Override
     public void registerUser(RegistrationRequest request) {

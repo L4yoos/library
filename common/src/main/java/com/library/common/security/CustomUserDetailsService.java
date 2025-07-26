@@ -19,9 +19,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
 
     private final WebClient webClient;
-
-    @Value("${user-service.url}")
-    private String userServiceInternalAuthUrl;
+    private final static String userServiceInternalAuthUrl = "http://USER-SERVICE/api/users/";
 
     @Value("${internal.api-key.header-name}")
     private String apiKeyHeaderName;
@@ -34,7 +32,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         try {
             logger.info("Attempting to fetch user authentication data for email: {}", email);
             UserAuthDTO userAuthDTO = webClient.get()
-                    .uri(userServiceInternalAuthUrl + "/internal/auth-data/" + email)
+                    .uri(userServiceInternalAuthUrl + "internal/auth-data/" + email)
                     .header(apiKeyHeaderName, apiKeyValue)
                     .retrieve()
                     .bodyToMono(UserAuthDTO.class)

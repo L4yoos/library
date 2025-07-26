@@ -54,6 +54,20 @@ services:
     networks:
       - library-network
 
+  eureka-server:
+    build:
+      context: .
+      dockerfile: ./eureka-server/Dockerfile
+    container_name: library_eureka_server
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_APPLICATION_NAME: eureka-server
+    volumes:
+      - maven_cache:/root/.m2
+    networks:
+      - library-network
+
   book-service:
     build:
       context: .
@@ -65,7 +79,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/library_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      user-service.url: http://user-service:8881/api/users
       INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
       INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
       JWT_SECRET: ${JWT_SECRET}
@@ -73,6 +86,8 @@ services:
     depends_on:
       postgres_db:
         condition: service_healthy
+      eureka-server:
+        condition: service_started
     volumes:
       - maven_cache:/root/.m2
     networks:
@@ -89,12 +104,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/library_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      user-service.url: http://localhost:8881/api/users
       INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
       INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
     depends_on:
       postgres_db:
         condition: service_healthy
+      eureka-server:
+        condition: service_started
     volumes:
       - maven_cache:/root/.m2
     networks:
@@ -111,8 +127,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/library_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      book-service.url: http://book-service:8880/api/books
-      user-service.url: http://user-service:8881/api/users
       INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
       INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
       JWT_SECRET: ${JWT_SECRET}
@@ -120,10 +134,12 @@ services:
     depends_on:
       postgres_db:
         condition: service_healthy
-      book-service:
-        condition: service_started
-      user-service:
-        condition: service_started
+#      book-service:
+#        condition: service_started
+#      user-service:
+#        condition: service_started
+#      eureka-server:
+#        condition: service_started
     volumes:
       - maven_cache:/root/.m2
     networks:
@@ -137,8 +153,6 @@ services:
     ports:
       - "8883:8883"
     environment:
-      user-service.url: http://user-service:8881/api/users
-      book-service.url: http://book-service:8880/api/books
       resend.api-key: ${RESEND_API_KEY}
       resend.sender-email: onboarding@resend.dev
     depends_on:
@@ -147,6 +161,8 @@ services:
       user-service:
         condition: service_started
       book-service:
+        condition: service_started
+      eureka-server:
         condition: service_started
     volumes:
       - maven_cache:/root/.m2
@@ -161,13 +177,14 @@ services:
     ports:
       - "8884:8884"
     environment:
-      user-service.url: http://user-service:8881/api/users
       INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
       INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
     depends_on:
       user-service:
+        condition: service_started
+      eureka-server:
         condition: service_started
     volumes:
       - maven_cache:/root/.m2
@@ -191,6 +208,8 @@ services:
       book-service:
         condition: service_started
       loan-service:
+        condition: service_started
+      eureka-server:
         condition: service_started
     volumes:
       - maven_cache:/root/.m2

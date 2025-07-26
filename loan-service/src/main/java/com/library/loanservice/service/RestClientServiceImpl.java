@@ -23,77 +23,69 @@ public class RestClientServiceImpl implements RestClientService {
 
     private static final Logger logger = LoggerFactory.getLogger(RestClientServiceImpl.class);
 
-    private final WebClient webClient;
-
-    @Value("${book-service.url}")
-    private String bookServiceUrl;
-
-    @Value("${user-service.url}")
-    private String userServiceUrl;
+    private final WebClient.Builder webClientBuilder;
+    private final static String bookServiceUrl = "http://BOOK-SERVICE/api/books/";
+    private final static String userServiceUrl = "http://USER-SERVICE/api/users/";
 
     @Override
     public BookDTO getBookById(UUID bookId) {
-        String url = bookServiceUrl + "/" + bookId;
+        String url = bookServiceUrl + bookId;
         logger.info("Attempting to get book by ID: {} from Book Service at URL: {}", bookId, url);
-        return webClient.get()
-                .uri(url)
-                .retrieve()
-                .bodyToMono(BookDTO.class)
-                .onErrorResume(WebClientResponseException.class, e -> {
-                    if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                        logger.warn("Book with ID: {} not found in Book Service. Status: {}", bookId, e.getStatusCode());
-                        return Mono.error(new BookNotFoundException(bookId));
-                    } else if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                        logger.error("Unauthorized access to Book Service for book ID: {}. Status: {}, Body: {}", bookId, e.getStatusCode(), e.getResponseBodyAsString());
-                        return Mono.error(new ServiceCommunicationException("Book Service",
-                                "Unauthorized access to book service. Check credentials. Status: " + e.getStatusCode() + ", Body: " + e.getResponseBodyAsString()));
-                    } else {
-                        logger.error("Received error from Book Service for book ID: {}. Status: {}, Body: {}", bookId, e.getStatusCode(), e.getResponseBodyAsString());
-                        return Mono.error(new ServiceCommunicationException("Book Service",
-                                "Received error from book service: " + e.getStatusCode() + ", Body: " + e.getResponseBodyAsString()));
-                    }
-                })
-                .block();
+        try {
+            return webClientBuilder.build().get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(BookDTO.class)
+                    .block();
+        } catch (WebClientResponseException.NotFound e) {
+            logger.warn("Book not found for ID: {}. Status: {}", bookId, e.getStatusCode());
+            throw new BookNotFoundException("Book with ID: " + bookId + " not found.");
+        } catch (WebClientResponseException e) {
+            logger.error("Error communicating with Book Service when getting book ID: {}. Status: {}, Body: {}", bookId, e.getStatusCode(), e.getResponseBodyAsString());
+            throw new ServiceCommunicationException("Book Service", "Failed to get book. Status: " + e.getStatusCode());
+        } catch (Exception e) {
+            logger.error("An unexpected error occurred when getting book ID: {}. Error: {}", bookId, e.getMessage());
+            throw new ServiceCommunicationException("Book Service", "An unexpected error occurred.");
+        }
     }
 
     @Override
     public UserDTO getUserById(UUID userId) {
-        String url = userServiceUrl + "/" + userId;
+        String url = userServiceUrl + userId;
         logger.info("Attempting to get user by ID: {} from User Service at URL: {}", userId, url);
-        return webClient.get()
-                .uri(url)
-                .retrieve()
-                .bodyToMono(UserDTO.class)
-                .onErrorResume(WebClientResponseException.class, e -> {
-                    if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                        logger.warn("User with ID: {} not found in User Service. Status: {}", userId, e.getStatusCode());
-                        return Mono.error(new UserNotFoundException(userId));
-                    } else if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                        logger.error("Unauthorized access to User Service for user ID: {}. Status: {}, Body: {}", userId, e.getStatusCode(), e.getResponseBodyAsString());
-                        return Mono.error(new ServiceCommunicationException("User Service",
-                                "Unauthorized access to user service. Check credentials. Status: " + e.getStatusCode() + ", Body: " + e.getResponseBodyAsString()));
-                    }
-                    else {
-                        logger.error("Received error from User Service for user ID: {}. Status: {}, Body: {}", userId, e.getStatusCode(), e.getResponseBodyAsString());
-                        return Mono.error(new ServiceCommunicationException("User Service",
-                                "Received error from user service: " + e.getStatusCode() + ", Body: " + e.getResponseBodyAsString()));
-                    }
-                })
-                .block();
+        try {
+            return webClientBuilder.build().get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(UserDTO.class)
+                    .block();
+        } catch (WebClientResponseException.NotFound e) {
+            logger.warn("User not found for ID: {}. Status: {}", userId, e.getStatusCode());
+            throw new UserNotFoundException("User with ID: " + userId + " not found.");
+        } catch (WebClientResponseException e) {
+            logger.error("Error communicating with User Service when getting user ID: {}. Status: {}, Body: {}", userId, e.getStatusCode(), e.getResponseBodyAsString());
+            throw new ServiceCommunicationException("User Service", "Failed to get user. Status: " + e.getStatusCode());
+        } catch (Exception e) {
+            logger.error("An unexpected error occurred when getting user ID: {}. Error: {}", userId, e.getMessage());
+            throw new ServiceCommunicationException("User Service", "An unexpected error occurred.");
+        }
     }
 
     @Override
     public Mono<Boolean> borrowBookInBookService(UUID bookId) {
-        String url = bookServiceUrl + "/" + bookId + "/borrow";
+        String url = bookServiceUrl + bookId + "/borrow";
         logger.info("Attempting to borrow book with ID: {} in Book Service at URL: {}", bookId, url);
-        return webClient.put()
+        return webClientBuilder.build().put()
                 .uri(url)
                 .retrieve()
                 .bodyToMono(Void.class)
                 .thenReturn(true)
                 .onErrorResume(WebClientResponseException.class, e -> {
                     logger.error("WebClientResponseException when borrowing book ID: {}. Status: {}, Body: {}", bookId, e.getStatusCode(), e.getResponseBodyAsString());
-                    return Mono.error(e);
+                    if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                        return Mono.error(new BookNotFoundException("Book not found for borrowing."));
+                    }
+                    return Mono.error(new ServiceCommunicationException("Book Service", "An error occurred during borrowing. Status: " + e.getStatusCode()));
                 })
                 .onErrorResume(e -> {
                     logger.error("An unexpected error occurred during borrowing book ID: {}. Error: {}", bookId, e.getMessage());
@@ -103,16 +95,19 @@ public class RestClientServiceImpl implements RestClientService {
 
     @Override
     public Mono<Boolean> returnBookInBookService(UUID bookId) {
-        String url = bookServiceUrl + "/" + bookId + "/return";
+        String url = bookServiceUrl + bookId + "/return";
         logger.info("Attempting to return book with ID: {} in Book Service at URL: {}", bookId, url);
-        return webClient.put()
+        return webClientBuilder.build().put()
                 .uri(url)
                 .retrieve()
                 .bodyToMono(Void.class)
                 .thenReturn(true)
                 .onErrorResume(WebClientResponseException.class, e -> {
                     logger.error("WebClientResponseException when returning book ID: {}. Status: {}, Body: {}", bookId, e.getStatusCode(), e.getResponseBodyAsString());
-                    return Mono.error(e);
+                    if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                        return Mono.error(new BookNotFoundException("Book not found for returning."));
+                    }
+                    return Mono.error(new ServiceCommunicationException("Book Service", "An error occurred during returning. Status: " + e.getStatusCode()));
                 })
                 .onErrorResume(e -> {
                     logger.error("An unexpected error occurred during returning book ID: {}. Error: {}", bookId, e.getMessage());

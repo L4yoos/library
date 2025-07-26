@@ -1,6 +1,7 @@
 package com.library.loanservice.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.ClientRequest;
@@ -18,6 +19,12 @@ public class WebClientConfig {
     private String internalApiKeyValue;
 
     @Bean
+    @LoadBalanced
+    public WebClient.Builder loadBalancedWebClientBuilder() {
+        return WebClient.builder();
+    }
+
+    @Bean
     public WebClient webClient(WebClient.Builder builder) {
         return builder
                 .filter(addApiKeyHeaderFilter())
@@ -26,12 +33,9 @@ public class WebClientConfig {
 
     private ExchangeFilterFunction addApiKeyHeaderFilter() {
         return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
-//            if (clientRequest.url().toString().contains("/internal")) {
-                return Mono.just(ClientRequest.from(clientRequest)
-                        .header(internalApiKeyHeaderName, internalApiKeyValue)
-                        .build());
-//            }
-//            return Mono.just(clientRequest);
+            return Mono.just(ClientRequest.from(clientRequest)
+                    .header(internalApiKeyHeaderName, internalApiKeyValue)
+                    .build());
         });
     }
 }
