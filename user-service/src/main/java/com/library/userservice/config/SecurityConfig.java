@@ -58,11 +58,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    public WebClient webClient() {
-        return WebClient.builder().build();
-    }
-
-    @Bean
     public UserDetailsService userDetailsService(CustomUserDetailsService customUserDetailsService) {
         return customUserDetailsService;
     }

@@ -18,10 +18,14 @@
 <h2 align="left" id="overview">🚀 Overview</h2>
 <p align="left">This project consists of multiple services, including book-service, notification-service, user-service, and loan-service, built using Spring Boot and Maven.</p>
 <ul align="left">
-  <li>book-service: manages books in the library system</li>
-  <li>notification-service: handles notifications for the library system</li>
-  <li>user-service: manages user interactions with the library system</li>
-  <li>loan-service: handles book loans and returns</li>
+  <li>book-service</li>
+  <li>notification-service</li>
+  <li>api-gateway</li>
+  <li>eureka-server</li>
+  <li>common</li>
+  <li>user-service</li>
+  <li>loan-service</li>
+  <li>auth-service</li>
 </ul>
 
 <hr/>
@@ -92,17 +96,20 @@
 <hr/>
 
 <h2 align="left" id="installation">🛠️ Installation</h2>
-<p align="left">To install and run each service, follow the instructions in the respective service's README.</p>
+<p align="left">To install this project, follow these steps:</p>
+<ul align="left">
+  <li>Clone the repository</li>
+  <li>Run `mvn clean package` to build the project</li>
+  <li>Run each microservice individually</li>
+</ul>
 
 <hr/>
 
 <h2 align="left" id="usage">🚀 Usage</h2>
-<p align="left">To use the project, you need to start each service and then use the RESTful APIs to interact with the services.</p>
+<p align="left">To use this project, follow these steps:</p>
 <ul align="left">
-  <li>Book Service: `http://localhost:8880/books`</li>
-  <li>User Service: `http://localhost:8881/users`</li>
-  <li>Loan Service: `http://localhost:8882/loans`</li>
-  <li>Auth Service: `http://localhost:8884/auth`</li>
+  <li>Start each microservice</li>
+  <li>Use the API gateway to access the services</li>
 </ul>
 
 <hr/>
@@ -114,7 +121,11 @@
 
 
 <h2 align="left" id="testing">🧪 Testing</h2>
-<p align="left">The project includes test files for each service.</p>
+<p align="left">To test this project, follow these steps:</p>
+<ul align="left">
+  <li>Run `mvn test` to run the unit tests</li>
+  <li>Run `mvn integration-test` to run the integration tests</li>
+</ul>
 
 <hr/>
 

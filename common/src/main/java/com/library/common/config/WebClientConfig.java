@@ -1,4 +1,4 @@
-package com.library.loanservice.config;
+package com.library.common.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -33,9 +33,9 @@ public class WebClientConfig {
 
     private ExchangeFilterFunction addApiKeyHeaderFilter() {
         return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
-            return Mono.just(ClientRequest.from(clientRequest)
-                    .header(internalApiKeyHeaderName, internalApiKeyValue)
-                    .build());
+                return Mono.just(ClientRequest.from(clientRequest)
+                        .header(internalApiKeyHeaderName, internalApiKeyValue)
+                        .build());
         });
     }
 }

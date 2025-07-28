@@ -36,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
-    private final static String userServiceUrl = "http://USER-SERVICE/api/users/";
+    private final static String userServiceUrl = "http://USER-SERVICE/api/users";
 
     @Override
     public void registerUser(RegistrationRequest request) {

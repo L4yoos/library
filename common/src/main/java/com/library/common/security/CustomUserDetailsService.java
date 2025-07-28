@@ -19,21 +19,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
 
     private final WebClient webClient;
-    private final static String userServiceInternalAuthUrl = "http://USER-SERVICE/api/users/";
-
-    @Value("${internal.api-key.header-name}")
-    private String apiKeyHeaderName;
-
-    @Value("${internal.api-key.value}")
-    private String apiKeyValue;
+    private final static String userServiceInternalAuthUrl = "http://USER-SERVICE/api/users";
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UserNotFoundException {
         try {
             logger.info("Attempting to fetch user authentication data for email: {}", email);
             UserAuthDTO userAuthDTO = webClient.get()
-                    .uri(userServiceInternalAuthUrl + "internal/auth-data/" + email)
-                    .header(apiKeyHeaderName, apiKeyValue)
+                    .uri(userServiceInternalAuthUrl + "/internal/auth-data/" + email)
                     .retrieve()
                     .bodyToMono(UserAuthDTO.class)
                     .block();
