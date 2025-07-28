@@ -129,7 +129,6 @@
 <hr/>
 
 <h2 align="left" id="demo">🎬 Demo</h2>
-<p align="left">A demo of the project is not available.</p>
 
 <p align="left">
   <img src="swagger.png" alt="Swagger PNG" width="600">
