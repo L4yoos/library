@@ -85,12 +85,11 @@
 <hr/>
 
 <h2 align="left" id="prerequisites">✅ Prerequisites</h2>
-<p align="left">To run this project, you need:</p>
+<p align="left">To run this project, you need to have the following installed:</p>
 <ul align="left">
   <li>Java 17</li>
   <li>Maven</li>
-  <li>PostgreSQL</li>
-  <li>Kafka</li>
+  <li>Docker</li>
 </ul>
 
 <hr/>
@@ -114,7 +113,7 @@
 
 <hr/>
 
-<h2 align="left" id="testing">🚀 Postman</h2>
+<h2 align="left" id="postman">🚀 Postman</h2>
 <p align="left">
     <a href="https://www.postman.com/l4yoosek/workspace/library/collection/29730936-e8bd00f8-03b1-4a71-9fd8-8daeb8fb8680?action=share&creator=29730936"> Collection with API</a>
 </p>
@@ -132,4 +131,11 @@
 <h2 align="left" id="demo">🎬 Demo</h2>
 <p align="left">A demo of the project is not available.</p>
 
-> 📝 **Note**: Replace {user} and {project} in the badge URLs with your actual GitHub username and repository name.
+<p align="left">
+  <img src="swagger.png" alt="Swagger PNG" width="600">
+</p>
+
+
+<p align="left">
+  <img src="demo.gif" alt="Demo GIF" width="600">
+</p>
