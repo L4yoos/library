@@ -58,6 +58,8 @@
   <img src="https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=black&style=for-the-badge" height="30" alt="Swagger logo" />
   <img width="12" />
   <img src="https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white&style=for-the-badge" height="30" alt="Kubernetes logo" />
+  <img src="https://img.shields.io/badge/Prometheus-342345?logo=Prometheus&logoColor=white&style=for-the-badge" height="30" alt="Prometheus logo" />
+  <img src="https://img.shields.io/badge/Grafana-342345?logo=Grafana&logoColor=white&style=for-the-badge" height="30" alt="Grafana logo" />
 </div>
 
 <hr/>
