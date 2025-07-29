@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'book-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['book-service:8880'] # book-service nasłuchuje na 8880
+
+  - job_name: 'user-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['user-service:8881'] # user-service nasłuchuje na 8881
+
+  - job_name: 'loan-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['loan-service:8882'] # loan-service nasłuchuje na 8882
+
+  - job_name: 'notification-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:8883'] # notification-service nasłuchuje na 8883
+
+  - job_name: 'auth-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['auth-service:8884'] # auth-service nasłuchuje na 8884
