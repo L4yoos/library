@@ -134,12 +134,12 @@ services:
     depends_on:
       postgres_db:
         condition: service_healthy
-#      book-service:
-#        condition: service_started
-#      user-service:
-#        condition: service_started
-#      eureka-server:
-#        condition: service_started
+      book-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      eureka-server:
+        condition: service_started
     volumes:
       - maven_cache:/root/.m2
     networks:
@@ -220,14 +220,14 @@ services:
     image: prom/prometheus:latest
     container_name: library_prometheus
     ports:
-      - "9090:9090" # Port UI Prometheusa
+      - "9090:9090"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml # Mapowanie pliku konfiguracyjnego
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
     depends_on:
-      - eureka-server # Prometheus potrzebuje, żeby serwisy były uruchomione
+      - eureka-server
       - book-service
       - user-service
       - loan-service
@@ -241,15 +241,15 @@ services:
     image: grafana/grafana:latest
     container_name: library_grafana
     ports:
-      - "3000:3000" # Port UI Grafany
+      - "3000:3000"
     volumes:
-      - grafana_data:/var/lib/grafana # Wolumen na dane Grafany
+      - grafana_data:/var/lib/grafana
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin # Zmień hasło w środowisku produkcyjnym!
-      GF_USERS_ALLOW_SIGN_UP: "false" # Wyłączanie rejestracji nowych użytkowników
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
     depends_on:
-      - prometheus # Grafana potrzebuje Prometheusa
+      - prometheus
     networks:
       - library-network
 

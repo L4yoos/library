@@ -30,6 +30,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.security.web.access.IpAddressAuthorizationManager.hasIpAddress;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -120,9 +122,9 @@ public class SecurityConfig {
 
         http.securityMatcher("/**")
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/actuator/prometheus").permitAll()
+                        .requestMatchers("/v3/api-docs/**").access(hasIpAddress("172.18.0.2"))
+                        .requestMatchers("/swagger-ui/**").access(hasIpAddress("172.18.0.2"))
+                        .requestMatchers("/actuator/prometheus").access(hasIpAddress("172.18.0.12"))
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new InternalApiAuthFilter(apiKeyHeaderName, apiKeyValue), UsernamePasswordAuthenticationFilter.class)

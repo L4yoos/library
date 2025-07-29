@@ -1,4 +1,5 @@
-package com.library.notificationservice.config;
+
+package com.library.eurekaserver.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
