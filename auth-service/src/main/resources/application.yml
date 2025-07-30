@@ -1,0 +1,53 @@
+server:
+  port: 8884
+
+spring:
+  application:
+    name: auth-service
+  eureka:
+    client:
+      service-url:
+        defaultZone: http://eureka-server:8761/eureka/
+    instance:
+      prefer-ip-address: true
+      hostname: ${spring.application.name}
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.library.authservice
+  paths-to-match: /**
+  show-actuator: true
+  info:
+    title: Auth Service API
+    version: 1.0.0
+    description: API for managing auth users in the Library System.
+    terms-of-service: http://swagger.io/terms/
+    contact:
+      name: L4yoos
+      email: daleckikonrad1@gmail.com
+    license:
+      name: Apache 2.0
+      url: http://springdoc.org
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+
+#logging.level.root=DEBUG
+#logging.level.com.library=DEBUG
+#logging.level.org.springframework.security=DEBUG
+#logging.level.org.springframework=DEBUG
+#logging.level.org.springframework.test.context=DEBUG

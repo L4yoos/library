@@ -1,2 +1,4 @@
 .idea
 .env
+jwt_secret.txt
+resend_api.txt

@@ -1,0 +1,23 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+#logging.level.root: DEBUG
+#logging.level.com.library: DEBUG
+#logging.level.org.springframework.security: DEBUG
+#logging.level.org.springframework: DEBUG
+#logging.level.org.springframework.test.context: DEBUG

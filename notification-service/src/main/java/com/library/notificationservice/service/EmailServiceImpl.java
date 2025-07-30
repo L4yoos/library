@@ -23,7 +23,7 @@ public class EmailServiceImpl implements EmailService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${resend.api-key}")
+    @Value("${resend.api-key:#{null}}")
     private String resendApiKey;
 
     @Value("${resend.sender-email}")

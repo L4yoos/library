@@ -1,0 +1,57 @@
+server:
+  port: 8882
+
+spring:
+  application:
+    name: loan-service
+  eureka:
+    client:
+      service-url:
+        defaultZone: http://eureka-server:8761/eureka/
+    instance:
+      prefer-ip-address: true
+      hostname: ${spring.application.name}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  kafka:
+    producer:
+      bootstrap-servers: broker:9093
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.library.loanservice
+  paths-to-match: /**
+  show-actuator: true
+  info:
+    title: Loan Service API
+    version: 1.0.0
+    description: API for loaning book in the Library System.
+    terms-of-service: http://swagger.io/terms/
+    contact:
+      name: L4yoos
+      email: daleckikonrad1@gmail.com
+    license:
+      name: Apache 2.0
+      url: http://springdoc.org
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+
+#logging.level.root=DEBUG
+#logging.level.com.library=DEBUG

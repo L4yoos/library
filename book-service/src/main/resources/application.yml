@@ -1,0 +1,33 @@
+server:
+  port: 8880
+
+spring:
+  application:
+    name: book-service
+  eureka:
+    client:
+      service-url:
+        defaultZone: http://eureka-server:8761/eureka/
+    instance:
+      prefer-ip-address: true
+      hostname: ${spring.application.name}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+
+#logging.level.root=DEBUG
+#logging.level.com.library=DEBUG

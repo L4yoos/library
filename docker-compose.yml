@@ -76,13 +76,12 @@ services:
     ports:
       - "8880:8880"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/library_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
       INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -92,6 +91,9 @@ services:
       - maven_cache:/root/.m2
     networks:
       - library-network
+    secrets:
+      - jwt_secret_key
+      - jwt_expiration_ms_secret
 
   user-service:
     build:
@@ -101,11 +103,12 @@ services:
     ports:
       - "8881:8881"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/library_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
       INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -115,6 +118,9 @@ services:
       - maven_cache:/root/.m2
     networks:
       - library-network
+    secrets:
+      - jwt_secret_key
+      - jwt_expiration_ms_secret
 
   loan-service:
     build:
@@ -124,13 +130,12 @@ services:
     ports:
       - "8882:8882"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/library_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
       INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -144,6 +149,9 @@ services:
       - maven_cache:/root/.m2
     networks:
       - library-network
+    secrets:
+      - jwt_secret_key
+      - jwt_expiration_ms_secret
 
   notification-service:
     build:
@@ -153,8 +161,8 @@ services:
     ports:
       - "8883:8883"
     environment:
-      resend.api-key: ${RESEND_API_KEY}
       resend.sender-email: onboarding@resend.dev
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
     depends_on:
       broker:
         condition: service_started
@@ -168,6 +176,8 @@ services:
       - maven_cache:/root/.m2
     networks:
       - library-network
+    secrets:
+      - resend_api_key
 
   auth-service:
     build:
@@ -179,8 +189,7 @@ services:
     environment:
       INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
       INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
     depends_on:
       user-service:
         condition: service_started
@@ -190,6 +199,9 @@ services:
       - maven_cache:/root/.m2
     networks:
       - library-network
+    secrets:
+      - jwt_secret_key
+      - jwt_expiration_ms_secret
 
   api-gateway:
     build:
@@ -261,3 +273,11 @@ volumes:
 networks:
   library-network:
     driver: bridge
+
+secrets:
+  jwt_secret_key:
+    file: ./jwt_secret.txt
+  resend_api_key:
+    file: ./resend_api.txt
+  jwt_expiration_ms_secret:
+    environment: JWT_EXPIRATION_MS
