@@ -4,17 +4,21 @@ server:
 spring:
   application:
     name: notification-service
+  cloud:
+    discovery:
+      enabled: true
+  kafka:
+    consumer:
+      bootstrap-servers: broker:9093
+      group-id: notification-service-group
   eureka:
     client:
+      enabled: true
       service-url:
         defaultZone: http://eureka-server:8761/eureka/
     instance:
       prefer-ip-address: true
       hostname: ${spring.application.name}
-  kafka:
-    consumer:
-      bootstrap-servers: broker:9093
-      group-id: notification-service-group
 
 resend:
   sender-email: onboarding@resend.dev

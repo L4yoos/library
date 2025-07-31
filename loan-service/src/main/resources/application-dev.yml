@@ -2,3 +2,15 @@ spring:
   config:
     activate:
       on-profile: dev
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

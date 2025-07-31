@@ -4,14 +4,9 @@ server:
 spring:
   application:
     name: loan-service
-  eureka:
-    client:
-      service-url:
-        defaultZone: http://eureka-server:8761/eureka/
-    instance:
-      prefer-ip-address: true
-      hostname: ${spring.application.name}
-
+  cloud:
+    discovery:
+      enabled: true
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,10 +14,17 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
   kafka:
     producer:
       bootstrap-servers: broker:9093
+  eureka:
+    client:
+      enabled: true
+      service-url:
+        defaultZone: http://eureka-server:8761/eureka/
+    instance:
+      prefer-ip-address: true
+      hostname: ${spring.application.name}
 
 springdoc:
   swagger-ui:

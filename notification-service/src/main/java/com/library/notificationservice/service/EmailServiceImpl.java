@@ -40,6 +40,7 @@ public class EmailServiceImpl implements EmailService {
                 .build();
 
         HttpHeaders headers = new HttpHeaders();
+        System.out.println(resendApiKey);
         headers.setBearerAuth(resendApiKey);
         headers.setContentType(MediaType.APPLICATION_JSON);
 

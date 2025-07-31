@@ -67,6 +67,12 @@ services:
       - maven_cache:/root/.m2
     networks:
       - library-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://eureka-server:8761/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   book-service:
     build:
@@ -86,7 +92,7 @@ services:
       postgres_db:
         condition: service_healthy
       eureka-server:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - maven_cache:/root/.m2
     networks:
@@ -113,7 +119,7 @@ services:
       postgres_db:
         condition: service_healthy
       eureka-server:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - maven_cache:/root/.m2
     networks:
@@ -136,15 +142,15 @@ services:
       INTERNAL_API_KEY_HEADER_NAME: ${INTERNAL_API_KEY_HEADER_NAME}
       INTERNAL_API_KEY_VALUE: ${INTERNAL_API_KEY_VALUE}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
-    depends_on:
-      postgres_db:
-        condition: service_healthy
-      book-service:
-        condition: service_started
-      user-service:
-        condition: service_started
-      eureka-server:
-        condition: service_started
+#    depends_on:
+#      postgres_db:
+#        condition: service_healthy
+#      book-service:
+#        condition: service_started
+#      user-service:
+#        condition: service_started
+#      eureka-server:
+#        condition: service_healthy
     volumes:
       - maven_cache:/root/.m2
     networks:
@@ -162,6 +168,7 @@ services:
       - "8883:8883"
     environment:
       resend.sender-email: onboarding@resend.dev
+      resend.api-key: ${RESEND_API_KEY}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
     depends_on:
       broker:
@@ -171,13 +178,11 @@ services:
       book-service:
         condition: service_started
       eureka-server:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - maven_cache:/root/.m2
     networks:
       - library-network
-    secrets:
-      - resend_api_key
 
   auth-service:
     build:
@@ -194,7 +199,7 @@ services:
       user-service:
         condition: service_started
       eureka-server:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - maven_cache:/root/.m2
     networks:
@@ -222,7 +227,7 @@ services:
       loan-service:
         condition: service_started
       eureka-server:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - maven_cache:/root/.m2
     networks:
@@ -277,7 +282,5 @@ networks:
 secrets:
   jwt_secret_key:
     file: ./jwt_secret.txt
-  resend_api_key:
-    file: ./resend_api.txt
   jwt_expiration_ms_secret:
     environment: JWT_EXPIRATION_MS
