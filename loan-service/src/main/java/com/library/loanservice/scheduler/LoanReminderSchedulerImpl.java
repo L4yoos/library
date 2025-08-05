@@ -30,6 +30,7 @@ public class LoanReminderSchedulerImpl implements LoanReminderScheduler {
     private final LoanEventProducer loanEventProducer;
 
     private static final int REMINDER_DAYS_BEFORE_DUE = 3;
+    private static final double DAILY_FINE_AMOUNT = 5;
 
     @Scheduled(cron = "0 0 8 * * *")
     @Override
@@ -71,7 +72,7 @@ public class LoanReminderSchedulerImpl implements LoanReminderScheduler {
         logger.info("Finished scheduled task: Sending loan reminders.");
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 8 * * *")
     @Override
     public void processOverdueLoans() {
         logger.info("Starting scheduled task: Processing overdue loans.");
@@ -85,11 +86,15 @@ public class LoanReminderSchedulerImpl implements LoanReminderScheduler {
         logger.info("Found {} overdue loans to process.", overdueLoans.size());
         for (Loan loan : overdueLoans) {
             try {
+                loan.increaseFineAmount(DAILY_FINE_AMOUNT);
+                logger.info("Increased fine for overdue loan ID {} to {}", loan.getId(), loan.getFineAmount());
+
                 if (loan.getStatus() != LoanStatus.OVERDUE) {
                     loan.setStatus(LoanStatus.OVERDUE);
-                    loanRepository.save(loan);
                     logger.info("Loan ID {} marked as OVERDUE.", loan.getId());
                 }
+
+                loanRepository.save(loan);
 
                 UserDTO user = restClientService.getUserById(loan.getUserId());
                 BookDTO book = restClientService.getBookById(loan.getBookId());

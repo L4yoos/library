@@ -39,7 +39,7 @@ public class Loan {
     private LoanStatus status;
 
     // Pole na podatek lub karę za przetrzymanie - opcjonalne, na przyszłość
-    // private Double fineAmount;
+    private Double fineAmount;
     //TODO
 
     public Loan(UUID bookId, UUID userId, LocalDate loanDate, LocalDate returnDate, LoanStatus status) {
@@ -48,5 +48,12 @@ public class Loan {
         this.loanDate = loanDate;
         this.returnDate = returnDate;
         this.status = status;
+    }
+
+    public void increaseFineAmount(double dailyFine) {
+        if (this.fineAmount == null) {
+            this.fineAmount = 0.0;
+        }
+        this.fineAmount += dailyFine;
     }
 }
